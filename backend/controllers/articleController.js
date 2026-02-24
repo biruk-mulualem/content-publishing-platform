@@ -1,12 +1,16 @@
-
 // Should be at the very top of your controller
 const { Article, User, Like, Comment } = require('../models');
+const logger = require('../utils/logger');
+const MonitoringService = require('../services/monitoringService');
+const { trackUserAction, trackError } = require('../middleware/monitoringHooks');
+
 // Create Article
 exports.createArticle = async (req, res) => {
   try {
     const { title, body, tags } = req.body;
-    const authorId = req.user.userId;  // from JWT
+    const authorId = req.user.userId;
 
+    const startTime = Date.now();
     const newArticle = await Article.create({
       title,
       body,
@@ -14,30 +18,48 @@ exports.createArticle = async (req, res) => {
       authorId,
       published_status: 0,
     });
+    const duration = Date.now() - startTime;
+
+    // Track article creation
+    logger.info({
+      type: 'article_created',
+      userId: authorId,
+      articleId: newArticle.id,
+      title,
+      tags,
+      duration: `${duration}ms`
+    });
+
+    MonitoringService.trackArticle(req, 'create', newArticle);
+    trackUserAction(req, 'create_article', { 
+      articleId: newArticle.id, 
+      title 
+    });
 
     res.status(201).json({
       message: 'Article created successfully',
       article: newArticle,
     });
   } catch (error) {
-    console.error(error);
+    trackError(error, req);
+    logger.error({
+      type: 'article_creation_error',
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.userId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
 
-
-
-
 // Get Current User's Articles with author info
 exports.getArticles = async (req, res) => {
   try {
-    // Get the authenticated user's ID from the JWT token
     const userId = req.user.userId;
+    const startTime = Date.now();
     
     const articles = await Article.findAll({
-      where: {
-        authorId: userId  // Only get articles belonging to the current user
-      },
+      where: { authorId: userId },
       include: {
         model: User,
         as: 'author',
@@ -46,7 +68,18 @@ exports.getArticles = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    // Calculate totals for the author
+    const duration = Date.now() - startTime;
+
+    // Log database performance
+    logger.debug({
+      type: 'database_query',
+      operation: 'findAll',
+      model: 'Article',
+      userId,
+      articleCount: articles.length,
+      duration: `${duration}ms`
+    });
+
     let totalLikes = 0;
     let totalComments = 0;
 
@@ -54,7 +87,6 @@ exports.getArticles = async (req, res) => {
       const likes = a.likesCount || 0;
       const comments = a.commentsCount || 0;
       
-      // Add to totals
       totalLikes += likes;
       totalComments += comments;
 
@@ -72,7 +104,9 @@ exports.getArticles = async (req, res) => {
       };
     });
 
-    // Return both articles and author totals
+    // Track view action
+    trackUserAction(req, 'view_articles', { count: articles.length });
+
     res.status(200).json({ 
       articles: formattedArticles,
       authorTotals: {
@@ -84,56 +118,23 @@ exports.getArticles = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error in getArticles:', error);
+    trackError(error, req);
+    logger.error({
+      type: 'get_articles_error',
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.userId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
 
 // Get Single Article (with ownership check)
-// exports.getArticle = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const userId = req.user.userId; // Get from JWT for protected route
-    
-//     const article = await Article.findByPk(id, {
-//       include: {
-//         model: User,
-//         as: 'author',
-//         attributes: ['id', 'name', 'email'],
-//       },
-//     });
-
-//     if (!article) {
-//       return res.status(404).json({ error: 'Article not found' });
-//     }
-
-//     // Check if the article belongs to the current user
-//     if (article.authorId !== userId) {
-//       return res.status(403).json({ error: 'You do not have permission to view this article' });
-//     }
-
-//     const formattedArticle = {
-//       id: article.id,
-//       title: article.title,
-//        createdAt: article.createdAt,
-//       body: article.body,
-//       tags: typeof article.tags === 'string' ? article.tags.split(',').map(t => t.trim()) : article.tags,
-//       published_status: article.published_status,
-//       authorId: article.authorId,
-//       authorName: article.author ? article.author.name : 'Unknown',
-//     };
-
-//     res.status(200).json({ article: formattedArticle });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Server error' });
-//   }
-// };
-// Get Single Article (with ownership check)
 exports.getArticle = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.userId; // Get from JWT for protected route
+    const userId = req.user.userId;
+    const startTime = Date.now();
     
     const article = await Article.findByPk(id, {
       include: [
@@ -152,17 +153,39 @@ exports.getArticle = async (req, res) => {
       ]
     });
 
+    const duration = Date.now() - startTime;
+
     if (!article) {
+      logger.warn({
+        type: 'article_not_found',
+        articleId: id,
+        userId
+      });
       return res.status(404).json({ error: 'Article not found' });
     }
 
-    // Check if the article belongs to the current user
+    // Check ownership
     if (article.authorId !== userId) {
+      logger.warn({
+        type: 'unauthorized_access',
+        userId,
+        articleId: id,
+        action: 'view_article'
+      });
       return res.status(403).json({ error: 'You do not have permission to view this article' });
     }
 
     // Get likes count
     const likesCount = await Like.count({ where: { articleId: id } });
+
+    // Log database performance
+    logger.debug({
+      type: 'database_query',
+      operation: 'getArticle',
+      articleId: id,
+      duration: `${duration}ms`,
+      hasComments: article.comments?.length > 0
+    });
 
     const formattedArticle = {
       id: article.id,
@@ -178,12 +201,23 @@ exports.getArticle = async (req, res) => {
       comments: article.comments || []
     };
 
+    // Track view action
+    trackUserAction(req, 'view_article', { articleId: id, title: article.title });
+
     res.status(200).json({ article: formattedArticle });
   } catch (error) {
-    console.error(error);
+    trackError(error, req);
+    logger.error({
+      type: 'get_article_error',
+      error: error.message,
+      stack: error.stack,
+      articleId: req.params.id,
+      userId: req.user?.userId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
+
 // Update Article (with ownership check)
 exports.updateArticle = async (req, res) => {
   try {
@@ -192,12 +226,30 @@ exports.updateArticle = async (req, res) => {
     const userId = req.user.userId;
 
     const article = await Article.findByPk(id);
-    if (!article) return res.status(404).json({ error: 'Article not found' });
+    if (!article) {
+      logger.warn({
+        type: 'article_not_found',
+        articleId: id,
+        userId,
+        action: 'update'
+      });
+      return res.status(404).json({ error: 'Article not found' });
+    }
 
-    // Check if the article belongs to the current user
     if (article.authorId !== userId) {
+      logger.warn({
+        type: 'unauthorized_access',
+        userId,
+        articleId: id,
+        action: 'update_article'
+      });
       return res.status(403).json({ error: 'You do not have permission to update this article' });
     }
+
+    const changes = {};
+    if (title && title !== article.title) changes.title = { from: article.title, to: title };
+    if (body && body !== article.body) changes.body = { from: article.body.length, to: body.length };
+    if (tags && tags !== article.tags) changes.tags = { from: article.tags, to: tags };
 
     article.title = title || article.title;
     article.body = body || article.body;
@@ -205,9 +257,27 @@ exports.updateArticle = async (req, res) => {
 
     await article.save();
 
+    // Track update
+    logger.info({
+      type: 'article_updated',
+      userId,
+      articleId: id,
+      changes: Object.keys(changes).length > 0 ? changes : 'no_changes'
+    });
+
+    MonitoringService.trackArticle(req, 'update', article);
+    trackUserAction(req, 'update_article', { articleId: id, changes: Object.keys(changes) });
+
     res.status(200).json({ message: 'Article updated successfully', article });
   } catch (error) {
-    console.error(error);
+    trackError(error, req);
+    logger.error({
+      type: 'update_article_error',
+      error: error.message,
+      stack: error.stack,
+      articleId: req.params.id,
+      userId: req.user?.userId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -219,18 +289,50 @@ exports.deleteArticle = async (req, res) => {
     const userId = req.user.userId;
 
     const article = await Article.findByPk(id);
-    if (!article) return res.status(404).json({ error: 'Article not found' });
+    if (!article) {
+      logger.warn({
+        type: 'article_not_found',
+        articleId: id,
+        userId,
+        action: 'delete'
+      });
+      return res.status(404).json({ error: 'Article not found' });
+    }
 
-    // Check if the article belongs to the current user
     if (article.authorId !== userId) {
+      logger.warn({
+        type: 'unauthorized_access',
+        userId,
+        articleId: id,
+        action: 'delete_article'
+      });
       return res.status(403).json({ error: 'You do not have permission to delete this article' });
     }
 
+    const title = article.title;
     await article.destroy();
+
+    // Track deletion
+    logger.info({
+      type: 'article_deleted',
+      userId,
+      articleId: id,
+      title
+    });
+
+    MonitoringService.trackArticle(req, 'delete', { id, title });
+    trackUserAction(req, 'delete_article', { articleId: id, title });
 
     res.status(200).json({ message: 'Article deleted successfully' });
   } catch (error) {
-    console.error(error);
+    trackError(error, req);
+    logger.error({
+      type: 'delete_article_error',
+      error: error.message,
+      stack: error.stack,
+      articleId: req.params.id,
+      userId: req.user?.userId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -242,45 +344,89 @@ exports.togglePublishStatus = async (req, res) => {
     const userId = req.user.userId;
 
     const article = await Article.findByPk(id);
-    if (!article) return res.status(404).json({ error: 'Article not found' });
+    if (!article) {
+      logger.warn({
+        type: 'article_not_found',
+        articleId: id,
+        userId,
+        action: 'toggle_publish'
+      });
+      return res.status(404).json({ error: 'Article not found' });
+    }
 
-    // Check if the article belongs to the current user
     if (article.authorId !== userId) {
+      logger.warn({
+        type: 'unauthorized_access',
+        userId,
+        articleId: id,
+        action: 'toggle_publish'
+      });
       return res.status(403).json({ error: 'You do not have permission to modify this article' });
     }
 
+    const oldStatus = article.published_status;
     article.published_status = article.published_status === 1 ? 0 : 1;
     await article.save();
+
+    // Track publish/unpublish
+    logger.info({
+      type: 'article_publish_toggled',
+      userId,
+      articleId: id,
+      title: article.title,
+      oldStatus: oldStatus === 1 ? 'published' : 'draft',
+      newStatus: article.published_status === 1 ? 'published' : 'draft'
+    });
+
+    MonitoringService.trackArticle(req, 
+      article.published_status ? 'publish' : 'unpublish', 
+      article
+    );
+    trackUserAction(req, 'toggle_publish', { 
+      articleId: id, 
+      newStatus: article.published_status ? 'published' : 'draft' 
+    });
 
     res.status(200).json({
       message: `Article ${article.published_status === 1 ? 'published' : 'unpublished'} successfully`,
       article,
     });
   } catch (error) {
-    console.error(error);
+    trackError(error, req);
+    logger.error({
+      type: 'toggle_publish_error',
+      error: error.message,
+      stack: error.stack,
+      articleId: req.params.id,
+      userId: req.user?.userId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
 
-
-
-
-
-
 // Get ALL published articles from ALL authors (PUBLIC endpoint - no auth needed)
 exports.getPublishedArticles = async (req, res) => {
   try {
-    // NO userId filter - get ALL published articles from ALL authors
+    const startTime = Date.now();
+    
     const articles = await Article.findAll({
-      where: {
-        published_status: 1  // Only get published articles
-      },
+      where: { published_status: 1 },
       include: {
         model: User,
         as: 'author',
         attributes: ['id', 'name', 'email'],
       },
-      order: [['createdAt', 'DESC']] // Sort by newest first
+      order: [['createdAt', 'DESC']]
+    });
+
+    const duration = Date.now() - startTime;
+
+    // Log public access
+    logger.debug({
+      type: 'public_articles_fetched',
+      count: articles.length,
+      duration: `${duration}ms`,
+      ip: req.ip
     });
 
     const formattedArticles = articles.map(a => ({
@@ -296,7 +442,12 @@ exports.getPublishedArticles = async (req, res) => {
 
     res.status(200).json({ articles: formattedArticles });
   } catch (error) {
-    console.error('Error in getPublishedArticles:', error);
+    trackError(error, req);
+    logger.error({
+      type: 'get_published_articles_error',
+      error: error.message,
+      stack: error.stack
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -305,13 +456,10 @@ exports.getPublishedArticles = async (req, res) => {
 exports.getPublishedArticleById = async (req, res) => {
   try {
     const { id } = req.params;
+    const startTime = Date.now();
     
-    // Find the article by ID and ensure it's published
     const article = await Article.findOne({
-      where: {
-        id: id,
-        published_status: 1  // Only get if published
-      },
+      where: { id, published_status: 1 },
       include: {
         model: User,
         as: 'author',
@@ -319,9 +467,26 @@ exports.getPublishedArticleById = async (req, res) => {
       }
     });
 
+    const duration = Date.now() - startTime;
+
     if (!article) {
+      logger.warn({
+        type: 'published_article_not_found',
+        articleId: id,
+        ip: req.ip
+      });
       return res.status(404).json({ error: 'Published article not found' });
     }
+
+    // Log public view
+    logger.info({
+      type: 'public_article_viewed',
+      articleId: id,
+      title: article.title,
+      authorId: article.authorId,
+      duration: `${duration}ms`,
+      ip: req.ip
+    });
 
     const formattedArticle = {
       id: article.id,
@@ -338,26 +503,16 @@ exports.getPublishedArticleById = async (req, res) => {
 
     res.status(200).json({ article: formattedArticle });
   } catch (error) {
-    console.error('Error in getPublishedArticleById:', error);
+    trackError(error, req);
+    logger.error({
+      type: 'get_published_article_error',
+      error: error.message,
+      stack: error.stack,
+      articleId: req.params.id
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ==================== LIKE ENDPOINTS ====================
 
@@ -368,35 +523,38 @@ exports.toggleLike = async (req, res) => {
     const sessionId = req.headers['x-session-id'] || req.sessionID || 'session-' + Date.now();
     const ipAddress = req.ip || req.connection.remoteAddress;
 
-    // Check if article exists and is published
     const article = await Article.findOne({
-      where: {
-        id: articleId,
-        published_status: 1
-      }
+      where: { id: articleId, published_status: 1 }
     });
 
     if (!article) {
+      logger.warn({
+        type: 'like_failed',
+        articleId,
+        reason: 'article_not_found',
+        sessionId,
+        ip: ipAddress
+      });
       return res.status(404).json({ error: 'Published article not found' });
     }
 
-    // Check if user already liked this article
     const existingLike = await Like.findOne({
-      where: {
-        articleId,
-        sessionId
-      }
+      where: { articleId, sessionId }
     });
 
     if (existingLike) {
-      // Unlike: remove the like
       await existingLike.destroy();
-      
-      // Update article likes count
       await article.decrement('likesCount');
-      
-      // Get updated like count
       const likesCount = await Like.count({ where: { articleId } });
+
+      // Track unlike
+      logger.info({
+        type: 'unlike',
+        articleId,
+        sessionId,
+        ip: ipAddress,
+        newCount: likesCount
+      });
 
       return res.status(200).json({
         liked: false,
@@ -404,18 +562,18 @@ exports.toggleLike = async (req, res) => {
         message: 'Like removed successfully'
       });
     } else {
-      // Like: create new like
-      await Like.create({
+      await Like.create({ articleId, sessionId, ipAddress });
+      await article.increment('likesCount');
+      const likesCount = await Like.count({ where: { articleId } });
+
+      // Track like
+      logger.info({
+        type: 'like',
         articleId,
         sessionId,
-        ipAddress
+        ip: ipAddress,
+        newCount: likesCount
       });
-
-      // Update article likes count
-      await article.increment('likesCount');
-
-      // Get updated like count
-      const likesCount = await Like.count({ where: { articleId } });
 
       return res.status(201).json({
         liked: true,
@@ -424,7 +582,13 @@ exports.toggleLike = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error toggling like:', error);
+    trackError(error, req);
+    logger.error({
+      type: 'toggle_like_error',
+      error: error.message,
+      stack: error.stack,
+      articleId: req.params.articleId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -435,13 +599,7 @@ exports.getLikeStatus = async (req, res) => {
     const { articleId } = req.params;
     const sessionId = req.headers['x-session-id'] || req.sessionID || 'session-' + Date.now();
 
-    const like = await Like.findOne({
-      where: {
-        articleId,
-        sessionId
-      }
-    });
-
+    const like = await Like.findOne({ where: { articleId, sessionId } });
     const likesCount = await Like.count({ where: { articleId } });
 
     res.status(200).json({
@@ -449,7 +607,13 @@ exports.getLikeStatus = async (req, res) => {
       likesCount
     });
   } catch (error) {
-    console.error('Error getting like status:', error);
+    trackError(error, req);
+    logger.error({
+      type: 'get_like_status_error',
+      error: error.message,
+      stack: error.stack,
+      articleId: req.params.articleId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -458,14 +622,17 @@ exports.getLikeStatus = async (req, res) => {
 exports.getLikesCount = async (req, res) => {
   try {
     const { articleId } = req.params;
-
     const likesCount = await Like.count({ where: { articleId } });
 
-    res.status(200).json({
-      likesCount
-    });
+    res.status(200).json({ likesCount });
   } catch (error) {
-    console.error('Error getting likes count:', error);
+    trackError(error, req);
+    logger.error({
+      type: 'get_likes_count_error',
+      error: error.message,
+      stack: error.stack,
+      articleId: req.params.articleId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -480,32 +647,21 @@ exports.createComment = async (req, res) => {
     const sessionId = req.headers['x-session-id'] || req.sessionID || 'session-' + Date.now();
     const ipAddress = req.ip || req.connection.remoteAddress;
 
-    // Validation
-    if (!name || !comment) {
-      return res.status(400).json({ error: 'Name and comment are required' });
-    }
-
-    if (name.length > 100) {
-      return res.status(400).json({ error: 'Name must be less than 100 characters' });
-    }
-
-    if (comment.length > 2000) {
-      return res.status(400).json({ error: 'Comment must be less than 2000 characters' });
-    }
-
-    // Check if article exists and is published
     const article = await Article.findOne({
-      where: {
-        id: articleId,
-        published_status: 1
-      }
+      where: { id: articleId, published_status: 1 }
     });
 
     if (!article) {
+      logger.warn({
+        type: 'comment_failed',
+        articleId,
+        reason: 'article_not_found',
+        sessionId,
+        ip: ipAddress
+      });
       return res.status(404).json({ error: 'Published article not found' });
     }
 
-    // Create comment
     const newComment = await Comment.create({
       articleId,
       name,
@@ -514,11 +670,22 @@ exports.createComment = async (req, res) => {
       ipAddress
     });
 
-    // Update article comments count
     await article.increment('commentsCount');
-
-    // Get updated comments count
     const commentsCount = await Comment.count({ where: { articleId } });
+
+    // Track comment
+    logger.info({
+      type: 'comment_created',
+      articleId,
+      commentId: newComment.id,
+      name,
+      commentLength: comment.length,
+      sessionId,
+      ip: ipAddress,
+      newCount: commentsCount
+    });
+
+    MonitoringService.trackComment(req, 'create', newComment);
 
     res.status(201).json({
       message: 'Comment added successfully',
@@ -531,7 +698,13 @@ exports.createComment = async (req, res) => {
       commentsCount
     });
   } catch (error) {
-    console.error('Error creating comment:', error);
+    trackError(error, req);
+    logger.error({
+      type: 'create_comment_error',
+      error: error.message,
+      stack: error.stack,
+      articleId: req.params.articleId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -540,8 +713,8 @@ exports.createComment = async (req, res) => {
 exports.getArticleComments = async (req, res) => {
   try {
     const { articleId } = req.params;
+    const startTime = Date.now();
 
-    // Check if article exists
     const article = await Article.findByPk(articleId);
     if (!article) {
       return res.status(404).json({ error: 'Article not found' });
@@ -553,11 +726,25 @@ exports.getArticleComments = async (req, res) => {
       attributes: ['id', 'name', 'comment', 'createdAt']
     });
 
-    res.status(200).json({
-      comments
+    const duration = Date.now() - startTime;
+
+    // Log comments fetch
+    logger.debug({
+      type: 'comments_fetched',
+      articleId,
+      count: comments.length,
+      duration: `${duration}ms`
     });
+
+    res.status(200).json({ comments });
   } catch (error) {
-    console.error('Error fetching comments:', error);
+    trackError(error, req);
+    logger.error({
+      type: 'get_comments_error',
+      error: error.message,
+      stack: error.stack,
+      articleId: req.params.articleId
+    });
     res.status(500).json({ error: 'Server error' });
   }
 };

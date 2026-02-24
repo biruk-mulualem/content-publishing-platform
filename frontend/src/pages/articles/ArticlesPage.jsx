@@ -555,57 +555,88 @@ const ArticlesPage = () => {
   const allTags = ["All", ...new Set(articles.flatMap(a => a.tags))];
 
   // Initialize Quill for create modal
-  useEffect(() => {
-    if (showModal && createQuillRef.current) {
-      setTimeout(() => {
-        if (!createQuillInstance.current) {
-          createQuillInstance.current = new Quill(createQuillRef.current, {
-            theme: "snow",
-            modules: {
-              toolbar: [
-                [{ list: "ordered" }, { list: "bullet" }],
-                ["bold", "italic", "underline"],
-                [{ align: [] }],
-                ["link", "image"],
-                [{ header: [1, 2, 3, 4, 5, 6] }],
-              ],
-            },
-          });
-        }
-        createQuillInstance.current.root.innerHTML = "";
-        setBodyError("");
-      }, 100);
-    }
-  }, [showModal]);
+ useEffect(() => {
+  if (showModal && createQuillRef.current) {
+    setTimeout(() => {
+      if (!createQuillInstance.current) {
+        createQuillInstance.current = new Quill(createQuillRef.current, {
+          theme: "snow",
+          modules: {
+            toolbar: [
+              [{ header: [1, 2, 3, 4, 5, 6, false] }],
+              [{ font: [] }],
+              [{ size: [] }],
 
+              ["bold", "italic", "underline", "strike"],
+
+              [{ color: [] }, { background: [] }],
+
+              [{ script: "sub" }, { script: "super" }],
+
+              [{ list: "ordered" }, { list: "bullet" }],
+              [{ indent: "-1" }, { indent: "+1" }],
+
+              [{ direction: "rtl" }],
+              [{ align: [] }],
+
+              ["blockquote", "code-block"],
+
+     
+
+              ["clean"],
+            ],
+          },
+        });
+      }
+
+      createQuillInstance.current.root.innerHTML = "";
+      setBodyError("");
+    }, 100);
+  }
+}, [showModal]);
   // Initialize or update Quill whenever editModal changes
-  useEffect(() => {
-    if (editModal && editQuillRef.current) {
-      setTimeout(() => {
-        if (!editQuillInstance.current) {
-          editQuillInstance.current = new Quill(editQuillRef.current, {
-            theme: "snow",
-            modules: {
-              toolbar: [
-                [{ list: "ordered" }, { list: "bullet" }],
-                ["bold", "italic", "underline"],
-                [{ align: [] }],
-                ["link", "image"],
-                [{ header: [1, 2, 3, 4, 5, 6] }],
-              ],
-            },
-          });
-        }
-        
-        if (editQuillInstance.current) {
-          editQuillInstance.current.root.innerHTML = "";
-          editQuillInstance.current.root.innerHTML = editBody || "";
-          setEditBodyError("");
-        }
-      }, 100);
-    }
-  }, [editModal, editBody]);
+ useEffect(() => {
+  if (editModal && editQuillRef.current) {
+    setTimeout(() => {
+      if (!editQuillInstance.current) {
+        editQuillInstance.current = new Quill(editQuillRef.current, {
+          theme: "snow",
+          modules: {
+            toolbar: [
+              [{ header: [1, 2, 3, 4, 5, 6, false] }],
+              [{ font: [] }],
+              [{ size: [] }],
 
+              ["bold", "italic", "underline", "strike"],
+
+              [{ color: [] }, { background: [] }],
+
+              [{ script: "sub" }, { script: "super" }],
+
+              [{ list: "ordered" }, { list: "bullet" }],
+              [{ indent: "-1" }, { indent: "+1" }],
+
+              [{ direction: "rtl" }],
+              [{ align: [] }],
+
+              ["blockquote", "code-block"],
+
+        
+
+              ["clean"],
+            ],
+          },
+        });
+      }
+
+      if (editQuillInstance.current) {
+        editQuillInstance.current.root.innerHTML = "";
+        editQuillInstance.current.root.innerHTML = editBody || "";
+        setEditBodyError("");
+      }
+    }, 100);
+  }
+}, [editModal, editBody]);
   // Create Article
   const handleSubmit = async (e) => {
     e.preventDefault();

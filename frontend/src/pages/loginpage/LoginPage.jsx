@@ -72,8 +72,14 @@ const handleSubmit = async (e) => {
       localStorage.setItem('userName', response.user.name);
       localStorage.setItem('userEmail', response.user.email);
       localStorage.setItem('userId', response.user.id);
+      localStorage.setItem('userRole', response.user.role); // Store role
       
-      navigate("/page/dashboard");
+      // ✅ REDIRECT BASED ON ROLE
+      if (response.user.role === 'admin') {
+        navigate("/page/adminDashboard"); // Admin dashboard route
+      } else {
+        navigate("/page/dashboard"); // Author dashboard route
+      }
     } else {
       // Perform registration
       const response = await registerUser(fullName, email, password);

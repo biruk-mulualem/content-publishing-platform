@@ -274,58 +274,58 @@ const HomePage = () => {
           <p>Powerful features that make content creation a joy</p>
         </div>
         <div className="features-grid">
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <span className="feature-icon">✍️</span>
-            </div>
-            <h3>Smart Editor</h3>
-            <p>Write with clarity using our powerful rich text editor with markdown support and live preview.</p>
-            <ul className="feature-list">
-              <li>✅ Rich text formatting</li>
-              <li>✅ Markdown support</li>
-              <li>✅ Live preview</li>
-            </ul>
-          </div>
+  <div className="feature-card">
+    <div className="feature-icon-wrapper">
+      <span className="feature-icon">📝</span>
+    </div>
+    <h3>Article Management</h3>
+    <p>Create, edit, and manage your articles with ease.</p>
+    <ul className="feature-list">
+      <li>✅ Create and edit articles</li>
+      <li>✅ Rich text formatting</li>
+      <li>✅ Draft/Published workflow</li>
+    </ul>
+  </div>
 
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <span className="feature-icon">🏷️</span>
-            </div>
-            <h3>Smart Tagging</h3>
-            <p>Organize and filter articles seamlessly with our intelligent tagging system.</p>
-            <ul className="feature-list">
-              <li>✅ Multi-tag filtering</li>
-              <li>✅ Tag suggestions</li>
-              <li>✅ Category management</li>
-            </ul>
-          </div>
+  <div className="feature-card">
+    <div className="feature-icon-wrapper">
+      <span className="feature-icon">🏷️</span>
+    </div>
+    <h3>Tag System</h3>
+    <p>Organize and discover content with tags.</p>
+    <ul className="feature-list">
+      <li>✅ Add up to 10 tags per article</li>
+      <li>✅ Filter articles by tag</li>
+      <li>✅ Popular tags analytics</li>
+    </ul>
+  </div>
 
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <span className="feature-icon">📊</span>
-            </div>
-            <h3>Analytics Dashboard</h3>
-            <p>Track your content performance with detailed analytics and insights.</p>
-            <ul className="feature-list">
-              <li>✅ View counts</li>
-              <li>✅ Reader engagement</li>
-              <li>✅ Traffic sources</li>
-            </ul>
-          </div>
+  <div className="feature-card">
+    <div className="feature-icon-wrapper">
+      <span className="feature-icon">📊</span>
+    </div>
+    <h3>Author Dashboard</h3>
+    <p>Track your content performance and manage your articles.</p>
+    <ul className="feature-list">
+      <li>✅ Article statistics</li>
+      <li>✅ Like and comment tracking</li>
+      <li>✅ Quick actions menu</li>
+    </ul>
+  </div>
 
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <span className="feature-icon">🔒</span>
-            </div>
-            <h3>Publish Control</h3>
-            <p>Complete control over your content with draft and publish workflow.</p>
-            <ul className="feature-list">
-              <li>✅ Draft mode</li>
-              <li>✅ Scheduled publishing</li>
-              <li>✅ Version history</li>
-            </ul>
-          </div>
-        </div>
+  <div className="feature-card">
+    <div className="feature-icon-wrapper">
+      <span className="feature-icon">👑</span>
+    </div>
+    <h3>Admin Dashboard</h3>
+    <p>Complete system oversight and analytics.</p>
+    <ul className="feature-list">
+      <li>✅ System-wide statistics</li>
+      <li>✅ User and content monitoring</li>
+      <li>✅ Activity logs and insights</li>
+    </ul>
+  </div>
+</div>
       </section>
 
       {/* PUBLIC ARTICLES SECTION */}

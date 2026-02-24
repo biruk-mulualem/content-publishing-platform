@@ -7,13 +7,14 @@ const Header = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [userName, setUserName] = useState("Guest User");
   const [userEmail, setUserEmail] = useState("");
+  const [userRole, setUserRole] = useState("author");
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // Load user info from localStorage on component mount
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
     const storedEmail = localStorage.getItem("userEmail");
+    const storedRole = localStorage.getItem("userRole");
     
     if (storedName) {
       setUserName(storedName);
@@ -22,20 +23,25 @@ const Header = () => {
     if (storedEmail) {
       setUserEmail(storedEmail);
     }
+    
+    if (storedRole) {
+      setUserRole(storedRole);
+    }
   }, []);
 
-  // Toggle the dropdown visibility
   const toggleDropdown = () => {
     setDropdownOpen(!isDropdownOpen);
   };
 
-  // Call the logout service when the user clicks 'Log Out'
+  // 🔥 FIXED: Proper logout that prevents back button access
   const handleLogout = () => {
+    // Call the logout service
     logoutUser();
-    navigate("/login");
+    
+    // No need to navigate - logoutUser does a hard redirect
+    // This ensures all React state is cleared
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -52,26 +58,55 @@ const Header = () => {
   return (
     <header className="top-nav">
       <div className="nav-left">
-        <div className="logo" onClick={() => navigate("/page/dashboard")}>
-          ContentFlow
-        </div>
 
-        {/* Navigation Links */}
-        <nav className="nav-links">
-          <button 
-            className={`nav-link ${window.location.pathname === '/page/dashboard' ? 'active' : ''}`}
-            onClick={() => navigate("/page/dashboard")}
-          >
-            <span className="nav-text">Dashboard</span>
-          </button>
-          
-          <button 
-            className={`nav-link ${window.location.pathname === '/page/articlepage' ? 'active' : ''}`}
-            onClick={() => navigate("/page/articlepage")}
-          >
-            <span className="nav-text">Articles</span>
-          </button>
-        </nav>
+        {userRole === 'admin' && (
+          <div className="logo" onClick={() => navigate("/page/adminDashboard")}>
+            ContentFlow
+          </div>
+        )}
+
+        {userRole === 'author' && (
+          <div className="logo" onClick={() => navigate("/page/dashboard")}>
+            ContentFlow
+          </div>
+        )}
+
+        {/* Author Navigation */}
+        {userRole === 'author' && (
+          <nav className="nav-links">
+            <button 
+              className={`nav-link ${window.location.pathname === '/page/dashboard' ? 'active' : ''}`}
+              onClick={() => navigate("/page/dashboard")}
+            >
+              <span className="nav-text">Dashboard</span>
+            </button>
+            
+            <button 
+              className={`nav-link ${window.location.pathname === '/page/articlepage' ? 'active' : ''}`}
+              onClick={() => navigate("/page/articlepage")}
+            >
+              <span className="nav-text">Articles</span>
+            </button>
+          </nav>
+        )}
+
+        {/* Admin Navigation */}
+        {userRole === 'admin' && (
+          <nav className="nav-links">
+            {/* <button 
+              className={`nav-link ${window.location.pathname === '/page/adminDashboard' ? 'active' : ''}`}
+              onClick={() => navigate("/page/adminDashboard")}
+            >
+              <span className="nav-text">Dashboard</span>
+            </button> */}
+            <button 
+              className={`nav-link ${window.location.pathname === '/page/admin/logs' ? 'active' : ''}`}
+              onClick={() => navigate("/page/logs")}
+            >
+              <span className="nav-text">Logs</span>
+            </button>
+          </nav>
+        )}
       </div>
 
       {/* User Profile Section */}
@@ -87,12 +122,13 @@ const Header = () => {
           </div>
           <div className="user-info">
             <span className="user-name">{userName}</span>
-            <span className="user-role">Content Creator</span>
+            <span className="user-role">
+              {userRole === 'admin' ? 'Administrator' : 'Author'}
+            </span>
           </div>
           <span className={`triangle-icon ${isDropdownOpen ? 'open' : ''}`}>▼</span>
         </div>
 
-        {/* Profile Dropdown */}
         {isDropdownOpen && (
           <div className="dropdown-menu">
             <div className="dropdown-header">
@@ -105,6 +141,9 @@ const Header = () => {
               <div className="dropdown-user-info">
                 <span className="dropdown-user-name">{userName}</span>
                 <span className="dropdown-user-email">{userEmail || "No email provided"}</span>
+                <span className="dropdown-user-role">
+                  {userRole === 'admin' ? 'Administrator' : 'Author'}
+                </span>
               </div>
             </div>
             

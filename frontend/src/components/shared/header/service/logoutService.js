@@ -1,8 +1,11 @@
-// logoutService.js
-
-// Function to log out the user
+// services/logoutService.js
 export const logoutUser = () => {
-  // Clear the authentication token from localStorage (or sessionStorage)
-  localStorage.removeItem('authToken'); // For JWT in localStorage
-  window.location.href = "/";  // Redirect to the login page after logout
+  // Clear ALL localStorage items
+  localStorage.removeItem('token');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userName');
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('userRole');
+  
+  window.location.href = '/';
 };
