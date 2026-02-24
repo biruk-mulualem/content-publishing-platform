@@ -1,0 +1,13 @@
+# backend/.dockerignore
+
+node_modules
+npm-debug.log
+logs
+.env
+.git
+.gitignore
+README.md
+.vscode
+.idea
+.DS_Store
+*.log

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/articles';
+const API_URL = 'https://content-publishing-backend-latest.onrender.com/api/articles';
 
 // Get auth token
 const getAuthHeader = () => {

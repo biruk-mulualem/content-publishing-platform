@@ -374,7 +374,7 @@ const Header = () => {
             navigate("/");
           }}
         >
-          ContentFlow
+          PublishHub
         </div>
         <nav className="pub-detail-nav">
           <button 
@@ -402,7 +402,7 @@ const Header = () => {
 const Footer = () => {
   return (
     <footer className="pub-detail-footer-nav">
-      <p>© 2026 ContentFlow. All rights reserved.</p>
+      <p>© 2026 PublishHub. All rights reserved.</p>
     </footer>
   );
 };

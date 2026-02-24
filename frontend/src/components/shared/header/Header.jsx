@@ -61,13 +61,13 @@ const Header = () => {
 
         {userRole === 'admin' && (
           <div className="logo" onClick={() => navigate("/page/adminDashboard")}>
-            ContentFlow
+            PublishHub
           </div>
         )}
 
         {userRole === 'author' && (
           <div className="logo" onClick={() => navigate("/page/dashboard")}>
-            ContentFlow
+            PublishHub
           </div>
         )}
 

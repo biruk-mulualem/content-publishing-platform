@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const ARTICLE_API_URL = 'http://localhost:5000/api/articles';
+const ARTICLE_API_URL = 'https://content-publishing-backend-latest.onrender.com/api/articles';
 
 // Create article
 export const createArticle = async (articleData, token) => {

@@ -47,7 +47,7 @@ const LogViewer = () => {
         offset
       }).toString();
       
-      const response = await fetch(`http://localhost:5000/api/admin/logs?${queryParams}`, {
+      const response = await fetch(`https://content-publishing-backend-latest.onrender.com/api/admin/logs?${queryParams}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -70,7 +70,7 @@ const LogViewer = () => {
   const fetchStats = async () => {
     setStatsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/admin/logs/stats', {
+      const response = await fetch('https://content-publishing-backend-latest.onrender.com/api/admin/logs/stats', {
         headers: { Authorization: `Bearer ${token}` }
       });
       

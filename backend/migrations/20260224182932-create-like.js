@@ -12,17 +12,18 @@ module.exports = {
       articleId: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        unique: true,
         references: {
           model: 'Articles',
           key: 'id'
         },
         onDelete: 'CASCADE'
       },
-      count: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0,
+      sessionId: {
+        type: Sequelize.STRING,
         allowNull: false
+      },
+      ipAddress: {
+        type: Sequelize.STRING(45)
       },
       createdAt: {
         allowNull: false,
@@ -32,6 +33,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       }
+    });
+
+    await queryInterface.addIndex('Likes', ['articleId', 'sessionId'], {
+      unique: true,
+      name: 'likes_article_session_unique'
     });
   },
 

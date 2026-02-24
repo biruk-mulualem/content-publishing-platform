@@ -224,7 +224,7 @@ const PublicArticlesPage = () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             navigate("/");
           }} style={{ cursor: 'pointer' }}>
-            ContentFlow
+            PublishHub
           </div>
 
 
@@ -493,7 +493,7 @@ const PublicArticlesPage = () => {
 
       {/* Simple Footer */}
       <footer className="pub-articles-footer">
-        <p>© 2026 ContentFlow. All rights reserved.</p>
+        <p>© 2026 PublishHub. All rights reserved.</p>
       </footer>
     </div>
   );

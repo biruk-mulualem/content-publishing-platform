@@ -26,6 +26,13 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false
       },
+      sessionId: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      ipAddress: {
+        type: Sequelize.STRING(45)
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -35,9 +42,6 @@ module.exports = {
         type: Sequelize.DATE
       }
     });
-
-    // Add index for faster queries
-    await queryInterface.addIndex('Comments', ['articleId']);
   },
 
   down: async (queryInterface, Sequelize) => {

@@ -1,7 +1,7 @@
 // services/adminService.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/admin';
+const API_URL = 'https://content-publishing-backend-latest.onrender.com/api/admin';
 
 // Get auth token
 const getAuthHeader = () => {

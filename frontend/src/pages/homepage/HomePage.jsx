@@ -19,7 +19,7 @@ const HomePage = () => {
       id: 1,
       name: "Sarah Johnson",
       role: "Tech Blogger",
-      content: "ContentFlow has transformed how I publish my technical articles. The editor is a dream to work with!",
+      content: "PublishHub has transformed how I publish my technical articles. The editor is a dream to work with!",
       avatar: "👩‍💻",
       rating: 5
     },
@@ -160,7 +160,7 @@ const HomePage = () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             navigate("/");
           }} style={{ cursor: 'pointer' }}>
-            ContentFlow
+            PublishHub
           </div>
           <nav className="nav-menu">
             <a 
@@ -457,7 +457,7 @@ const HomePage = () => {
       <section className="cta-section">
         <div className="cta-content">
           <h2>Ready to Share Your Story?</h2>
-          <p>Join thousands of creators building their audience with ContentFlow.</p>
+          <p>Join thousands of creators building their audience with PublishHub.</p>
           <div className="cta-buttons">
             <button className="btn-primary large" onClick={() => navigate("/page/loginpage")}>
               <span className="btn-icon"></span>
@@ -477,7 +477,7 @@ const HomePage = () => {
         <div className="footer-content">
           <div className="footer-brand">
             
-            <span className="brand-text">ContentFlow</span>
+            <span className="brand-text">PublishHub</span>
           </div>
           <div className="footer-links">
             <div className="footer-column">
@@ -522,7 +522,7 @@ const HomePage = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2026 ContentFlow. All rights reserved.</p>
+          <p>© 2026 PublishHub. All rights reserved.</p>
         </div>
       </footer>
 

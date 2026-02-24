@@ -1,0 +1,11 @@
+# Step 1: Undo all seeders
+npx sequelize-cli db:seed:undo:all
+
+# Step 2: Undo all migrations (drops tables)
+npx sequelize-cli db:migrate:undo:all
+
+# Step 3: Run migrations fresh (creates empty tables)
+npx sequelize-cli db:migrate
+
+# Step 4: (Optional) Run seeders if you want demo data
+npx sequelize-cli db:seed:all

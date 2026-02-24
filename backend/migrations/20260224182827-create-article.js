@@ -1,50 +1,58 @@
 'use strict';
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('Articles', {
       id: {
-        type: Sequelize.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
+        type: Sequelize.INTEGER
       },
       title: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: false
       },
       body: {
         type: Sequelize.TEXT,
-        allowNull: false,
+        allowNull: false
       },
       tags: {
-        type: Sequelize.STRING,
-        allowNull: true,
+        type: Sequelize.STRING
       },
       authorId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'Users',
-          key: 'id',
+          key: 'id'
         },
+        onDelete: 'CASCADE'
       },
       published_status: {
         type: Sequelize.INTEGER,
-        allowNull: true,
+        defaultValue: 0
+      },
+      likesCount: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      commentsCount: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       createdAt: {
-        type: Sequelize.DATE,
         allowNull: false,
+        type: Sequelize.DATE
       },
       updatedAt: {
-        type: Sequelize.DATE,
         allowNull: false,
-      },
+        type: Sequelize.DATE
+      }
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('Articles');
-  },
+  }
 };

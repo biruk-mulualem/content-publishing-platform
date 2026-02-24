@@ -126,8 +126,8 @@ const handleSubmit = async (e) => {
         <h1>{isLogin ? "Welcome Back 👋" : "Create Account 🚀"}</h1>
         <p className="subtitle">
           {isLogin
-            ? "Login to continue to ContentFlow"
-            : "Join ContentFlow and start publishing"}
+            ? "Login to continue to PublishHub"
+            : "Join PublishHub and start publishing"}
         </p>
 
         {error && <p className="error">{error}</p>}

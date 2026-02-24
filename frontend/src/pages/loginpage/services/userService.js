@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/users'; // Adjust if your backend is hosted somewhere else
+const API_URL = 'https://content-publishing-backend-latest.onrender.com/api/users'; // Adjust if your backend is hosted somewhere else
 
 // Register a new user
 export const registerUser = async (name, email, password) => {
