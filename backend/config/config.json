@@ -1,44 +1,23 @@
 {
   "development": {
-    "username": "contentpub_user",
-    "password": "7Wr4wmB5ANMW0Buu9gUHxDupAJ5AmUhn",
-    "database": "contentpub",
-    "host": "dpg-d6eshbi4d50c7380uj0g-a.oregon-postgres.render.com",
+    "use_env_variable": "DATABASE_URL",
     "dialect": "postgres",
-    "port": 5432,
     "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
-      }
+      "ssl": { "require": true, "rejectUnauthorized": false }
     }
   },
   "test": {
-    "username": "contentpub_user",
-    "password": "7Wr4wmB5ANMW0Buu9gUHxDupAJ5AmUhn",
-    "database": "contentpub",
-    "host": "dpg-d6eshbi4d50c7380uj0g-a.oregon-postgres.render.com",
+    "use_env_variable": "DATABASE_URL",
     "dialect": "postgres",
-    "port": 5432,
     "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
-      }
+      "ssl": { "require": true, "rejectUnauthorized": false }
     }
   },
   "production": {
-    "username": "contentpub_user",
-    "password": "7Wr4wmB5ANMW0Buu9gUHxDupAJ5AmUhn",
-    "database": "contentpub",
-    "host": "dpg-d6eshbi4d50c7380uj0g-a.oregon-postgres.render.com",
+    "use_env_variable": "DATABASE_URL",
     "dialect": "postgres",
-    "port": 5432,
     "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
-      }
+      "ssl": { "require": true, "rejectUnauthorized": false }
     }
   }
 }

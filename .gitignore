@@ -4,3 +4,13 @@ node_modules/
 # Or explicitly:
 frontend/node_modules/
 backend/node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Backend logs and sqlite/db files if any
+backend/logs/
+
+# Build artifacts
+frontend/dist/

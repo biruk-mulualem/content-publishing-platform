@@ -1,305 +1,180 @@
+PublishHub — Content Publishing Platform
 
+PublishHub is a content publishing platform that lets authors create and publish articles, readers comment and like posts, and admins view metrics and logs.
+
+Tech Stack: React + Vite (frontend), Express + Sequelize + PostgreSQL (backend), JWT authentication, Winston logging.
+
+Table of Contents
+
+Setup Instructions
+
+Running the Project
+
+Architecture Overview
+
+API Documentation
+
+Database Schema
+
+Deployment & Live URL
+
+Demo Video
+
+Where to Look in the Repo
+
+Setup Instructions
 Prerequisites
-- Node.js (v18+) and npm
-- PostgreSQL (local) or Docker (recommended for quick setup)
-- Docker & Docker Compose (if using containers)
 
-Part A — Backend: setup and run (step-by-step)
+Node.js 18+
 
-1) Install dependencies
+npm 9+
 
-```bash
+PostgreSQL 14+ (for local DB)
+
+Backend
 cd backend
 npm install
-```
-
-2) Provide environment variables
-- Create `backend/.env` (or export env vars). Minimum required:
-
-```env
-NODE_ENV=development
-PORT=3000
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=contentpub
-DB_USER=contentpub_user
-DB_PASS=yourpassword
-JWT_SECRET=replace_with_secure_secret
-```
-
-3) Run migrations and seed demo data
-
-```bash
+cp .env.example .env   # edit .env with DATABASE_URL, JWT_SECRET, etc.
 npx sequelize-cli db:migrate
 npx sequelize-cli db:seed:all
-```
-
-4) Start the backend
-
-```bash
-npm start
-```
-
-Notes
-- The entry point is `backend/bin/www`; the Express app is in `backend/app.js`.
-- Protected endpoints require `Authorization: Bearer <JWT>` header (token from login).
-
-Part B — Frontend: setup and run (step-by-step)
-
-1) Install dependencies
-
-```bash
+Frontend
 cd frontend
 npm install
-```
+Optional
 
-2) Start dev server
+Use Docker to bring up all services (see Deployment section).
 
-```bash
+Running the Project
+Backend (Development)
+cd backend
+npm run dev   # or `npm start`
+
+Default port is configured in .env (usually 3000).
+
+Protected API requests require the header:
+
+Authorization: Bearer <token>
+
+<token> is obtained via /api/users/login.
+
+Backend (Production Example)
+NODE_ENV=production PORT=80 pm2 start ./bin/www --name publish-backend
+Frontend (Development)
+cd frontend
 npm run dev
-```
-
-3) Build for production
-
-```bash
-npm run build
-npm run preview   # preview the built site
-```
-
-Notes
-- The frontend is a React + Vite app. Adjust API base URLs in the client services under `frontend/src/pages` or `frontend/src/components` to point to your backend host.
-
-Part C — Quick Docker (development) steps
-
-1) Use the repository `docker-compose.yml` example (or create one at repo root). Then:
-
-```bash
-docker compose up --build
-```
-
-2) Run migrations inside the backend container (if needed):
-
-```bash
-docker compose exec backend npx sequelize-cli db:migrate
-docker compose exec backend npx sequelize-cli db:seed:all
-```
-
-Part D — Architecture overview (how the code is organized)
-
-- Frontend
-  - `frontend/src/` — React pages and components. Pages grouped under `src/pages/*`.
-  - `frontend/package.json` defines `dev`, `build`, `preview` scripts.
-
-- Backend
-  - `backend/app.js` — Express app configuration (middleware, routes).
-  - `backend/bin/www` — Node server launcher.
-  - `backend/routes/` — route definitions (`articleRoutes.js`, `userRoutes.js`, `adminRoutes.js`, `logRoutes.js`).
-  - `backend/controllers/` — request handlers and business logic.
-  - `backend/models/` — Sequelize models (`User`, `Article`, `Comment`, `Like`).
-  - `backend/migrations/` — DB migration files used by Sequelize CLI.
-  - `backend/utils/logger.js` and `backend/services/monitoringService.js` handle logging/monitoring.
-
-Part E — API documentation (concise, concrete list)
-Base path: `http://<BACKEND_HOST>:<PORT>/` (default `http://localhost:3000`)
-
-- Users (`/users`)
-  - POST `/users/register` — body: `{ name, email, password }` — creates author account.
-  - POST `/users/login` — body: `{ email, password }` — returns `{ token, user }`.
-  - GET `/users/authors` — (protected) list authors.
-  - GET `/users/author/:id` — (protected) get author by id.
-
-- Articles (`/articles`)
-  - GET `/articles/public` — list published articles (pagination via query: `page`, `limit`).
-  - GET `/articles/public/:id` — single public article.
-  - POST `/articles/public/:articleId/like` — toggle like for caller (uses `sessionId`).
-  - GET `/articles/public/:articleId/like/status` — like status for current session.
-  - GET `/articles/public/:articleId/like/count` — likes count.
-  - POST `/articles/public/:articleId/comments` — post comment (public).
-  - GET `/articles/public/:articleId/comments` — get comments (pagination).
-
-  - POST `/articles/create` — (protected) create article. body: `{ title, body, tags }`.
-  - GET `/articles` — (protected) user's articles.
-  - GET `/articles/:id` — (protected) user's article detail.
-  - PUT `/articles/:id` — (protected) update article.
-  - DELETE `/articles/:id` — (protected) delete article.
-  - PATCH `/articles/:id/publish` — (protected) toggle published status.
-
-- Admin (`/admin`) — requires admin role
-  - GET stats endpoints: `/admin/stats/articles`, `/admin/stats/authors`, `/admin/stats/likes`, `/admin/stats/comments`, `/admin/stats/tags`.
-  - GET `/admin/authors/top`, `/admin/authors`, `/admin/activity/recent`, `/admin/tags/popular`, `/admin/charts/daily`.
-
-- Logs (`/logs`) — admin only
-  - GET `/logs`, GET `/logs/stats`, DELETE `/logs/clear`.
-
-- Examples
-  - Login (curl):
-
-```bash
-curl -X POST http://localhost:3000/users/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"secret"}'
-```
-
-  - Create article (authenticated):
-
-```bash
-curl -X POST http://localhost:3000/articles/create \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"title":"Hello","body":"...","tags":"tag1,tag2"}'
-```
-
-Part F — Database schema (detailed)
-
-- `Users` (`backend/migrations/*create-user.js`)
-  - `id` INT PK, auto-increment
-  - `name` STRING NOT NULL
-  - `email` STRING NOT NULL UNIQUE
-  - `password` STRING NOT NULL (hashed)
-  - `role` ENUM('author','admin') DEFAULT 'author'
-  - `createdAt`, `updatedAt` TIMESTAMP
-
-- `Articles` (`backend/migrations/*create-article.js`)
-  - `id` INT PK
-  - `title` STRING NOT NULL
-  - `body` TEXT NOT NULL
-  - `tags` STRING (comma-separated)
-  - `authorId` INT NOT NULL FK -> `Users(id)` ON DELETE CASCADE
-  - `published_status` INT DEFAULT 0 (0=draft,1=published)
-  - `likesCount` INT DEFAULT 0
-  - `commentsCount` INT DEFAULT 0
-  - `createdAt`, `updatedAt` TIMESTAMP
-
-- `Comments` (`backend/migrations/*create-comment.js`)
-  - `id` INT PK
-  - `articleId` INT FK -> `Articles(id)` ON DELETE CASCADE
-  - `name` STRING(100) NOT NULL
-  - `comment` TEXT NOT NULL
-  - `sessionId` STRING NOT NULL
-  - `ipAddress` STRING(45)
-  - `createdAt`, `updatedAt` TIMESTAMP
-
-- `Likes` (`backend/migrations/*create-like.js`)
-  - `id` INT PK
-  - `articleId` INT FK -> `Articles(id)` ON DELETE CASCADE
-  - `sessionId` STRING NOT NULL
-  - `ipAddress` STRING(45)
-  - unique index on (`articleId`, `sessionId`)
-  - `createdAt`, `updatedAt` TIMESTAMP
-
-Part G — Deployment & live URL
-
-1) Build frontend and serve static files
-  - Build frontend:
-
-```bash
+# open http://localhost:5173
+Frontend (Production)
 cd frontend
 npm run build
-```
+npm run preview   # serve built files locally
+Environment Override Example
+VITE_API_BASE_URL=http://localhost:3000/api npm run dev
+Architecture Overview
 
-  - Option A: Deploy `frontend/dist` to a static host (Netlify, Vercel, S3 + CloudFront) and set `BACKEND_URL` in client config.
-  - Option B: Serve `frontend/dist` via nginx inside Docker.
+Frontend: React + Vite (frontend/src) — UI, routing, API calls
 
-2) Deploy backend
-  - Use a managed PostgreSQL (Render, Railway, RDS) and set production env vars (DB credentials, `JWT_SECRET`).
-  - Run migrations on production DB with `npx sequelize-cli db:migrate`.
+Backend: Express (backend/app.js, backend/bin/www) — REST API, auth, business logic
 
-3) Example hosting choices
-  - Render/Railway: push backend container or Node service; attach Postgres; set env vars via dashboard.
-  - Heroku: push code, add Heroku Postgres, set config vars, run `npx sequelize-cli db:migrate`.
+Database: PostgreSQL via Sequelize (backend/models, backend/migrations)
 
+Logging: Winston (backend/utils/logger.js) and monitoring hooks (backend/middleware/monitoringHooks.js)
 
-Part H — Next recommended small tasks (I can do these)
-- Add `backend/.env.example` with required variables.
-- Add `docker-compose.prod.yml` that builds the frontend and serves it via nginx, and runs backend in production mode.
-- Add API examples for pagination and error responses.
+Data Flow:
+User → Frontend → Backend /api → PostgreSQL
+Backend logs and exposes admin stats.
 
-If you want, I will now:
-- create `backend/.env.example`, and
-- create `docker-compose.prod.yml` that includes an nginx service for the built frontend.
+API Documentation
 
----
-Generated from repository analysis on 2026-02-26.
+All endpoints are prefixed with /api.
 
+Users
 
-**4. Database Schema (summary)**
-- `Users` table (`backend/migrations/*create-user.js`)
-  - `id` INT PK, `name` STRING, `email` STRING UNIQUE, `password` STRING, `role` ENUM('author','admin'), timestamps
+POST /api/users/register
 
-- `Articles` table (`backend/migrations/*create-article.js`)
-  - `id` INT PK, `title` STRING, `body` TEXT, `tags` STRING, `authorId` INT FK -> Users(id), `published_status` INT (0=draft,1=published), `likesCount` INT, `commentsCount` INT, timestamps
+Body:
 
-- `Comments` table (`backend/migrations/*create-comment.js`)
-  - `id` INT PK, `articleId` INT FK -> Articles(id), `name` STRING(100), `comment` TEXT, `sessionId` STRING, `ipAddress` STRING(45), timestamps
+{ "name": "Alice", "email": "a@a.com", "password": "secret" }
 
-- `Likes` table (`backend/migrations/*create-like.js`)
-  - `id` INT PK, `articleId` INT FK -> Articles(id), `sessionId` STRING, `ipAddress` STRING(45), timestamps
-  - unique index on (`articleId`, `sessionId`) to prevent double-like per session
+Success: 201 Created (user object without password)
 
-Notes: Articles track `likesCount` and `commentsCount` as denormalized integer counters; likes are also stored as rows in `Likes` table.
+Errors: 400 validation, 409 email already exists
 
-**5. Docker & Compose (quick start)**
-Create a `docker-compose.yml` to run `postgres`, `backend`, and `frontend` together. Example (place in repository root):
+POST /api/users/login
 
-```yaml
-version: '3.8'
-services:
-  db:
-    image: postgres:14
-    environment:
-      POSTGRES_DB: contentpub
-      POSTGRES_USER: contentpub_user
-      POSTGRES_PASSWORD: example
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+Body:
 
-  backend:
-    build: ./backend
-    depends_on:
-      - db
-    environment:
-      NODE_ENV: development
-      PORT: 3000
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: contentpub
-      DB_USER: contentpub_user
-      DB_PASS: example
-      JWT_SECRET: supersecret
-    ports:
-      - "3000:3000"
+{ "email": "a@a.com", "password": "secret" }
 
-  frontend:
-    build: ./frontend
-    depends_on:
-      - backend
-    ports:
-      - "5173:5173"
+Success: 200 OK: { "token": "<jwt>", "user": { ... } }
 
-volumes:
-  db-data:
-```
+Errors: 400 validation, 401 invalid credentials
 
-Run with:
+GET /api/users/authors – Auth required, returns list of authors
 
-```bash
-docker compose up --build
-```
+GET /api/users/author/:id – Auth required, returns author profile or 404
 
-Notes:
-- The repository already contains `Dockerfile`s for `backend` and `frontend` — review them and adjust environment variables as needed.
-- For production, build the frontend (`npm run build`) and serve static files from a web server or configure the backend to serve the `dist` folder.
+Articles (Public)
 
-**6. Deployment & Live URL**
-- Production options:
+GET /api/articles/public – Paginated list (page, limit)
 
-  - Platform-as-a-service (Render, Heroku, Railway) — configure a Postgres add-on and set environment variables.
+GET /api/articles/public/:id – Fetch single article
 
-- Example environment variables to set in production:
+POST /api/articles/public/:articleId/like – Toggle like per session/IP
 
-```env
+GET /api/articles/public/:articleId/like/status – Like status
+
+GET /api/articles/public/:articleId/like/count – Like count
+
+POST /api/articles/public/:articleId/comments – Post comment
+
+GET /api/articles/public/:articleId/comments – Paginated comments
+
+Articles (Protected – Authors)
+
+POST /api/articles/create – Create article
+
+GET /api/articles/ – List authenticated user's articles
+
+GET /api/articles/:id – Get article if owned
+
+PUT /api/articles/:id – Update article
+
+DELETE /api/articles/:id – Delete article
+
+PATCH /api/articles/:id/publish – Toggle publish status
+
+Admin
+
+Auth + role === 'admin' required
+
+Stats: /api/admin/stats/articles, /authors, /likes, /comments, /tags
+
+Authors: /api/admin/authors/top, /api/admin/authors
+
+Activity & Tags: /api/admin/activity/recent, /api/admin/tags/popular, /api/admin/charts/daily
+
+Logs: /api/logs (list), /api/logs/stats, /api/logs/clear
+
+Error Handling: Standard HTTP status codes with JSON { error: "...", message: "..." }.
+
+Database Schema
+
+Users: id, name, email (unique), password (hashed), role (author/admin), timestamps
+
+Articles: id, title, body, tags, authorId → Users, published_status (0|1), likesCount, commentsCount, timestamps
+
+Comments: id, articleId → Articles, name, comment, sessionId, ipAddress, timestamps
+
+Likes: id, articleId → Articles, sessionId, ipAddress, timestamps; unique index (articleId, sessionId)
+
+Denormalized counters in Articles track likes and comments for performance.
+
+Deployment & Live URL
+
+Live Frontend: https://publishhub-e9nn.onrender.com/
+
+Backend: host with PostgreSQL and set environment variables:
+
 NODE_ENV=production
 PORT=80
 DB_HOST=<PROD_DB_HOST>
@@ -309,22 +184,21 @@ DB_USER=<PROD_DB_USER>
 DB_PASS=<PROD_DB_PASS>
 JWT_SECRET=<SECURE_JWT_SECRET>
 
-```
-- Live URL:https://publishhub-e9nn.onrender.com/
+Dockerized deployment: Build frontend, serve dist via nginx, backend in production mode.
 
-**7. Application Features**
-- User registration and JWT-based authentication (authors and admin roles).
-- Create, edit, delete articles with draft/publish workflow.
-- Public article reading with comment and like support (likes are tracked by sessionId).
-- Author dashboard: list articles, totals (likes/comments).
-- Admin dashboards: article/author/like/comment/tag stats, charts and recent activity.
-- Log viewer with filtering and admin actions.
-- Server-side validation with Joi, logging with Winston, and monitoring hooks.
+docker compose -f docker-compose.prod.yml up --build
+Demo Video
 
-**8. Where to look in the repo**
-- Backend entry: `backend/bin/www` and `backend/app.js`
-- Backend routes: `backend/routes/` (articleRoutes.js, userRoutes.js, adminRoutes.js, logRoutes.js)
-- Backend controllers: `backend/controllers/`
-- Models & migrations: `backend/models/` and `backend/migrations/`
-- Frontend entry: `frontend/index.html` and `frontend/src/main.jsx`
+Demo video (replace placeholder): https://youtu.be/REPLACE_WITH_YOUR_VIDEO
 
+Where to Look in the Repo
+
+Backend entry: backend/bin/www, backend/app.js
+
+Backend routes: backend/routes/
+
+Backend controllers: backend/controllers/
+
+Models & Migrations: backend/models/, backend/migrations/
+
+Frontend entry: frontend/index.html, frontend/src/main.jsx
