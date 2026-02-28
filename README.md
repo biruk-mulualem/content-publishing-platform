@@ -168,7 +168,7 @@ JWT_SECRET=<SECURE_JWT_SECRET>
 
 ## Demo Video
 
-- Demo video: https://youtu.be/REPLACE_WITH_YOUR_VIDEO
+- Demo video: 
 
 ## Where to Look in the Repo
 
