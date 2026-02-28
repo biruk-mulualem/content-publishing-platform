@@ -1,24 +1,11 @@
-import axios from 'axios';
+import api from './interceptor'; 
 
-const API_URL = 'https://content-publishing-backend-latest.onrender.com/api/articles';
+// ==================== ARTICLE CRUD ====================
 
-// Get auth token
-const getAuthHeader = () => {
-  const token = localStorage.getItem('token');
-  return {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  };
-};
-
-// ==================== DASHBOARD STATS ====================
-
-// Get all articles for the current user (for dashboard stats)
+// Get all articles for the current user
 export const getUserArticles = async () => {
   try {
-    const response = await axios.get(API_URL, getAuthHeader());
+    const response = await api.get('/articles');
     return response.data.articles || [];
   } catch (error) {
     console.error('Error fetching user articles:', error);
@@ -26,10 +13,10 @@ export const getUserArticles = async () => {
   }
 };
 
-// Get single article details
+// Get single article by ID
 export const getArticleById = async (id) => {
   try {
-    const response = await axios.get(`${API_URL}/${id}`, getAuthHeader());
+    const response = await api.get(`/articles/${id}`);
     return response.data.article;
   } catch (error) {
     console.error(`Error fetching article ${id}:`, error);
@@ -37,16 +24,10 @@ export const getArticleById = async (id) => {
   }
 };
 
-// ==================== ARTICLE CRUD ====================
-
 // Create new article
 export const createArticle = async (articleData) => {
   try {
-    const response = await axios.post(
-      API_URL, 
-      articleData, 
-      getAuthHeader()
-    );
+    const response = await api.post('/articles', articleData);
     return response.data;
   } catch (error) {
     console.error('Error creating article:', error);
@@ -57,11 +38,7 @@ export const createArticle = async (articleData) => {
 // Update article
 export const updateArticle = async (id, articleData) => {
   try {
-    const response = await axios.put(
-      `${API_URL}/${id}`, 
-      articleData, 
-      getAuthHeader()
-    );
+    const response = await api.put(`/articles/${id}`, articleData);
     return response.data;
   } catch (error) {
     console.error(`Error updating article ${id}:`, error);
@@ -72,7 +49,7 @@ export const updateArticle = async (id, articleData) => {
 // Delete article
 export const deleteArticle = async (id) => {
   try {
-    const response = await axios.delete(`${API_URL}/${id}`, getAuthHeader());
+    const response = await api.delete(`/articles/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error deleting article ${id}:`, error);
@@ -83,11 +60,7 @@ export const deleteArticle = async (id) => {
 // Toggle publish status
 export const togglePublishStatus = async (id) => {
   try {
-    const response = await axios.patch(
-      `${API_URL}/${id}/publish`, 
-      {}, 
-      getAuthHeader()
-    );
+    const response = await api.patch(`/articles/${id}/publish`, {});
     return response.data;
   } catch (error) {
     console.error(`Error toggling publish status for ${id}:`, error);
@@ -95,7 +68,7 @@ export const togglePublishStatus = async (id) => {
   }
 };
 
-// ==================== DASHBOARD STATS HELPER FUNCTIONS ====================
+// ==================== HELPER FUNCTIONS (no API calls) ====================
 
 // Get recent articles (sorted by date)
 export const getRecentArticles = (articles, limit = 5) => {
@@ -104,14 +77,10 @@ export const getRecentArticles = (articles, limit = 5) => {
     .slice(0, limit);
 };
 
-// Get popular articles (by views)
 // Get popular articles (by likes)
 export const getPopularArticles = (articles, limit = 3) => {
   return [...articles]
     .filter(a => a.published_status === 1)
-    .sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0)) // Changed from views to likesCount
+    .sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0))
     .slice(0, limit);
 };
-
-
-

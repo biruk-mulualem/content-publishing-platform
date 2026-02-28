@@ -7,7 +7,7 @@ import {
   getLikeStatus, 
   createComment,
   getArticleComments 
-} from "../service/publicDataService";
+} from "../../../services/publicDataService";
 
 const ArticleDetailPublicView = () => {
   const { id } = useParams();

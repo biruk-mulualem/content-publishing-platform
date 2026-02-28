@@ -1,14 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+// components/shared/header/Header.jsx
+import React, { useState, useEffect, useRef, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./header.css";
-import { logoutUser } from "./service/logoutService";
+import { logoutUser } from "../../../services/authService";
 
-const Header = () => {
+const Header = memo(() => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userName, setUserName] = useState("Guest User");
   const [userEmail, setUserEmail] = useState("");
   const [userRole, setUserRole] = useState("author");
   const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,101 +19,181 @@ const Header = () => {
     const storedEmail = localStorage.getItem("userEmail");
     const storedRole = localStorage.getItem("userRole");
     
-    if (storedName) {
-      setUserName(storedName);
-    }
-    
-    if (storedEmail) {
-      setUserEmail(storedEmail);
-    }
-    
-    if (storedRole) {
-      setUserRole(storedRole);
-    }
+    if (storedName) setUserName(storedName);
+    if (storedEmail) setUserEmail(storedEmail);
+    if (storedRole) setUserRole(storedRole);
   }, []);
 
   const toggleDropdown = () => {
     setDropdownOpen(!isDropdownOpen);
+    if (isMobileMenuOpen) setMobileMenuOpen(false);
   };
 
-  // 🔥 FIXED: Proper logout that prevents back button access
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!isMobileMenuOpen);
+    if (isDropdownOpen) setDropdownOpen(false);
+  };
+
   const handleLogout = () => {
-    // Call the logout service
     logoutUser();
-    
-    // No need to navigate - logoutUser does a hard redirect
-    // This ensures all React state is cleared
   };
 
+  const handleNavigation = (path) => {
+    navigate(path);
+    setMobileMenuOpen(false);
+    setDropdownOpen(false);
+  };
+
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setMobileMenuOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Close mobile menu on window resize (if going to desktop)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768 && isMobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
     };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileMenuOpen]);
+
+  // Add scroll effect for header
+  useEffect(() => {
+    const handleScroll = () => {
+      const header = document.querySelector('.top-nav');
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
     <header className="top-nav">
       <div className="nav-left">
+        <div 
+          className="logo" 
+          onClick={() => handleNavigation(userRole === 'admin' ? "/page/adminDashboard" : "/page/dashboard")}
+        >
+          <span className="logo-icon">📚</span>
+          PublishHub
+        </div>
 
-        {userRole === 'admin' && (
-          <div className="logo" onClick={() => navigate("/page/adminDashboard")}>
-            PublishHub
-          </div>
-        )}
+        {/* Desktop Navigation */}
+        <nav className="nav-links desktop-nav">
+          {userRole === 'author' && (
+            <>
+              <button 
+                className={`nav-link ${window.location.pathname === '/page/dashboard' ? 'active' : ''}`}
+                onClick={() => handleNavigation("/page/dashboard")}
+              >
+                <span className="nav-icon">📊</span>
+                <span className="nav-text">Dashboard</span>
+              </button>
+              
+              <button 
+                className={`nav-link ${window.location.pathname === '/page/articlepage' ? 'active' : ''}`}
+                onClick={() => handleNavigation("/page/articlepage")}
+              >
+                <span className="nav-icon">📝</span>
+                <span className="nav-text">Articles</span>
+              </button>
+            </>
+          )}
 
-        {userRole === 'author' && (
-          <div className="logo" onClick={() => navigate("/page/dashboard")}>
-            PublishHub
-          </div>
-        )}
-
-        {/* Author Navigation */}
-        {userRole === 'author' && (
-          <nav className="nav-links">
+          {userRole === 'admin' && (
             <button 
-              className={`nav-link ${window.location.pathname === '/page/dashboard' ? 'active' : ''}`}
-              onClick={() => navigate("/page/dashboard")}
+              className={`nav-link ${window.location.pathname === '/page/logs' ? 'active' : ''}`}
+              onClick={() => handleNavigation("/page/logs")}
             >
-              <span className="nav-text">Dashboard</span>
-            </button>
-            
-            <button 
-              className={`nav-link ${window.location.pathname === '/page/articlepage' ? 'active' : ''}`}
-              onClick={() => navigate("/page/articlepage")}
-            >
-              <span className="nav-text">Articles</span>
-            </button>
-          </nav>
-        )}
-
-        {/* Admin Navigation */}
-        {userRole === 'admin' && (
-          <nav className="nav-links">
-            {/* <button 
-              className={`nav-link ${window.location.pathname === '/page/adminDashboard' ? 'active' : ''}`}
-              onClick={() => navigate("/page/adminDashboard")}
-            >
-              <span className="nav-text">Dashboard</span>
-            </button> */}
-            <button 
-              className={`nav-link ${window.location.pathname === '/page/admin/logs' ? 'active' : ''}`}
-              onClick={() => navigate("/page/logs")}
-            >
+              <span className="nav-icon">📋</span>
               <span className="nav-text">Logs</span>
             </button>
-          </nav>
-        )}
+          )}
+        </nav>
       </div>
 
-      {/* User Profile Section */}
-      <div className="user-profile" ref={dropdownRef}>
+      {/* Mobile Menu Button */}
+      <button 
+        className={`mobile-menu-btn ${isMobileMenuOpen ? 'open' : ''}`} 
+        onClick={toggleMobileMenu}
+        aria-label="Toggle menu"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      {/* Mobile Navigation Menu */}
+      <div className={`mobile-menu ${isMobileMenuOpen ? 'active' : ''}`} ref={mobileMenuRef}>
+        <div className="mobile-menu-header">
+          <div className="mobile-user-info">
+            <span className="mobile-user-name">{userName}</span>
+            <span className="mobile-user-email">{userEmail || "No email"}</span>
+            <span className="mobile-user-role">
+              {userRole === 'admin' ? 'Administrator' : 'Author'}
+            </span>
+          </div>
+        </div>
+        
+        <nav className="mobile-nav-links">
+          {userRole === 'author' && (
+            <>
+              <button 
+                className={`mobile-nav-link ${window.location.pathname === '/page/dashboard' ? 'active' : ''}`}
+                onClick={() => handleNavigation("/page/dashboard")}
+              >
+                <span className="mobile-nav-icon">📊</span>
+                <span className="mobile-nav-text">Dashboard</span>
+              </button>
+              
+              <button 
+                className={`mobile-nav-link ${window.location.pathname === '/page/articlepage' ? 'active' : ''}`}
+                onClick={() => handleNavigation("/page/articlepage")}
+              >
+                <span className="mobile-nav-icon">📝</span>
+                <span className="mobile-nav-text">Articles</span>
+              </button>
+            </>
+          )}
+
+          {userRole === 'admin' && (
+            <button 
+              className={`mobile-nav-link ${window.location.pathname === '/page/logs' ? 'active' : ''}`}
+              onClick={() => handleNavigation("/page/logs")}
+            >
+              <span className="mobile-nav-icon">📋</span>
+              <span className="mobile-nav-text">Logs</span>
+            </button>
+          )}
+
+          <button className="mobile-nav-link logout" onClick={handleLogout}>
+            <span className="mobile-nav-icon">🚪</span>
+            <span className="mobile-nav-text">Logout</span>
+          </button>
+        </nav>
+      </div>
+
+      {/* User Profile Section (Desktop) */}
+      <div className="user-profile desktop-only" ref={dropdownRef}>
         <div className="profile-icon" onClick={toggleDropdown}>
           <div className="avatar-container">
             <img 
@@ -167,6 +250,6 @@ const Header = () => {
       </div>
     </header>
   );
-};
+});
 
 export default Header;

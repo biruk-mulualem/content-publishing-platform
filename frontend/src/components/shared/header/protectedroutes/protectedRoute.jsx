@@ -13,33 +13,22 @@ const ProtectedRoute = ({
   const [userRole, setUserRole] = useState(null);
   const location = useLocation();
 
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      const role = localStorage.getItem('userRole');
-      
-      console.log('ProtectedRoute Check:', { 
-        path: location.pathname,
-        token: token ? 'exists' : 'missing',
-        role,
-        requiredRole
-      });
-      
-      setIsAuthenticated(!!token);
-      setUserRole(role);
-      setIsChecking(false);
-    };
-
-    checkAuth();
-
-    const handleStorageChange = () => {
-      checkAuth();
-    };
+ // components/ProtectedRoute.jsx (add this in useEffect)
+useEffect(() => {
+  const checkAuth = () => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('userRole');
     
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [location.pathname, requiredRole]);
 
+    
+    setIsAuthenticated(!!token);
+    setUserRole(role);
+    setIsChecking(false);
+  };
+
+  checkAuth();
+  // ... rest
+}, [location.pathname, requiredRole]);
   if (isChecking) {
     return fallback;
   }

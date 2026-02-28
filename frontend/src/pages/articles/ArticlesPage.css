@@ -1213,7 +1213,7 @@ tr:hover .content-preview {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(0px)!important;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1224,9 +1224,9 @@ tr:hover .content-preview {
 .modal {
   background: white;
   padding: 30px;
-  width: 90vw;
+  width: 70vw;
   max-width: 1200px;
-  height: 90vh;
+  height: 80vh;
   max-height: 900px;
   border-radius: 24px;
   box-shadow: 0 30px 60px rgba(0, 184, 148, 0.25);

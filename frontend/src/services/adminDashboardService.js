@@ -1,24 +1,15 @@
 // services/adminService.js
-import axios from 'axios';
 
-const API_URL = 'https://content-publishing-backend-latest.onrender.com/api/admin';
+import api from './interceptor'; 
 
-// Get auth token
-const getAuthHeader = () => {
-  const token = localStorage.getItem('token');
-  return {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  };
-};
+
+
 
 // ==================== STATS ENDPOINTS ====================
 
 export const getArticleStats = async () => {
   try {
-    const response = await axios.get(`${API_URL}/stats/articles`, getAuthHeader());
+    const response = await api.get(`/admin/stats/articles`);
     return response.data;
   } catch (error) {
     console.error('Error fetching article stats:', error);
@@ -28,7 +19,7 @@ export const getArticleStats = async () => {
 
 export const getAuthorStats = async () => {
   try {
-    const response = await axios.get(`${API_URL}/stats/authors`, getAuthHeader());
+    const response = await api.get(`/admin/stats/authors`);
     return response.data;
   } catch (error) {
     console.error('Error fetching author stats:', error);
@@ -38,7 +29,7 @@ export const getAuthorStats = async () => {
 
 export const getLikeStats = async () => {
   try {
-    const response = await axios.get(`${API_URL}/stats/likes`, getAuthHeader());
+    const response = await api.get(`/admin/stats/likes`);
     return response.data;
   } catch (error) {
     console.error('Error fetching like stats:', error);
@@ -48,7 +39,7 @@ export const getLikeStats = async () => {
 
 export const getCommentStats = async () => {
   try {
-    const response = await axios.get(`${API_URL}/stats/comments`, getAuthHeader());
+    const response = await api.get(`/admin/stats/comments`);
     return response.data;
   } catch (error) {
     console.error('Error fetching comment stats:', error);
@@ -58,7 +49,7 @@ export const getCommentStats = async () => {
 
 export const getTagStats = async () => {
   try {
-    const response = await axios.get(`${API_URL}/stats/tags`, getAuthHeader());
+    const response = await api.get(`/admin/stats/tags`);
     return response.data;
   } catch (error) {
     console.error('Error fetching tag stats:', error);
@@ -70,7 +61,7 @@ export const getTagStats = async () => {
 
 export const getTopAuthors = async (limit = 5) => {
   try {
-    const response = await axios.get(`${API_URL}/authors/top?limit=${limit}`, getAuthHeader());
+    const response = await api.get(`/admin/authors/top?limit=${limit}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching top authors:', error);
@@ -80,7 +71,7 @@ export const getTopAuthors = async (limit = 5) => {
 
 export const getAllAuthors = async () => {
   try {
-    const response = await axios.get(`${API_URL}/authors`, getAuthHeader());
+    const response = await api.get(`/admin/authors`);
     return response.data;
   } catch (error) {
     console.error('Error fetching all authors:', error);
@@ -92,7 +83,7 @@ export const getAllAuthors = async () => {
 
 export const getRecentActivity = async (limit = 10) => {
   try {
-    const response = await axios.get(`${API_URL}/activity/recent?limit=${limit}`, getAuthHeader());
+    const response = await api.get(`/admin/activity/recent?limit=${limit}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching recent activity:', error);
@@ -104,7 +95,7 @@ export const getRecentActivity = async (limit = 10) => {
 
 export const getPopularTags = async (limit = 10) => {
   try {
-    const response = await axios.get(`${API_URL}/tags/popular?limit=${limit}`, getAuthHeader());
+    const response = await api.get(`/admin/tags/popular?limit=${limit}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching popular tags:', error);
@@ -116,7 +107,7 @@ export const getPopularTags = async (limit = 10) => {
 
 export const getDailyStats = async (days = 7) => {
   try {
-    const response = await axios.get(`${API_URL}/charts/daily?days=${days}`, getAuthHeader());
+    const response = await api.get(`/admin/charts/daily?days=${days}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching daily stats:', error);
@@ -126,7 +117,7 @@ export const getDailyStats = async (days = 7) => {
 
 // ==================== COMBINED DASHBOARD DATA ====================
 
-export const getAdminDashboardData = async () => {
+export const adminDashboardService = async () => {
   try {
     const [
       articleStats,

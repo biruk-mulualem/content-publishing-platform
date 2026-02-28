@@ -1,7 +1,8 @@
-import { useState } from "react";
+// pages/homepage/LoginPage.jsx
+import { useState, useEffect } from "react";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
-import { loginUser, registerUser } from "./services/userService";
+import { loginUser, registerUser } from "../../services/authService.js";
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,6 +15,19 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+
+  // Clear any existing auth data when login page loads
+  useEffect(() => {
+    // Clear all auth data from localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
+    
+    // Also clear any other auth-related items
+    localStorage.removeItem('sessionId'); // if you store this
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -53,73 +67,73 @@ const LoginPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-  if (!validateForm()) {
-    return;
-  }
-
-  try {
-    if (isLogin) {
-      // Perform login
-      const response = await loginUser(email, password);
-      console.log("Login successful:", response);
-      
-      // ✅ STORE USER INFO IN LOCALSTORAGE HERE (AFTER LOGIN)
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('userName', response.user.name);
-      localStorage.setItem('userEmail', response.user.email);
-      localStorage.setItem('userId', response.user.id);
-      localStorage.setItem('userRole', response.user.role); // Store role
-      
-      // ✅ REDIRECT BASED ON ROLE
-      if (response.user.role === 'admin') {
-        navigate("/page/adminDashboard"); // Admin dashboard route
-      } else {
-        navigate("/page/dashboard"); // Author dashboard route
-      }
-    } else {
-      // Perform registration
-      const response = await registerUser(fullName, email, password);
-      console.log("Registration successful:", response);
-      
-      // Store the email and password to prefill after switching
-      const registeredEmail = email;
-      const registeredPassword = password;
-      
-      // Clear form but keep email and password for login
-      setFullName("");
-      setConfirmPassword("");
-      setErrors({});
-
-      // Switch to login and prefill email/password
-      setIsLogin(true);
-      setEmail(registeredEmail);
-      setPassword(registeredPassword);
+    if (!validateForm()) {
+      return;
     }
-  } catch (err) {
-    console.error("Error during submission:", err);
+
+    try {
+      if (isLogin) {
+        // Perform login
+        const response = await loginUser(email, password);
     
-    if (err.error === "Email already in use") {
-      setErrors({ ...errors, email: "This email is already registered" });
+        // STORE USER INFO IN LOCALSTORAGE HERE (AFTER LOGIN)
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('userName', response.user.name);
+        localStorage.setItem('userEmail', response.user.email);
+        localStorage.setItem('userId', response.user.id);
+        localStorage.setItem('userRole', response.user.role);
+        
+        // REDIRECT BASED ON ROLE
+        if (response.user.role === 'admin') {
+          navigate("/page/adminDashboard");
+        } else {
+          navigate("/page/dashboard");
+        }
+      } else {
+        // Perform registration
+        const response = await registerUser(fullName, email, password);
+        console.log("Registration successful:", response);
+        
+        // Store the email and password to prefill after switching
+        const registeredEmail = email;
+        const registeredPassword = password;
+        
+        // Clear form but keep email and password for login
+        setFullName("");
+        setConfirmPassword("");
+        setErrors({});
+
+        // Switch to login and prefill email/password
+        setIsLogin(true);
+        setEmail(registeredEmail);
+        setPassword(registeredPassword);
+      }
+    } catch (err) {
+      console.error("Error during submission:", err);
+      
+      if (err.error === "Email already in use") {
+        setErrors({ ...errors, email: "This email is already registered" });
+      }
+      else if (err.message === "Email already in use") {
+        setErrors({ ...errors, email: "This email is already registered" });
+      }
+      else if (typeof err === 'string' && err.includes("Email already in use")) {
+        setErrors({ ...errors, email: "This email is already registered" });
+      }
+      else if (err.error) {
+        setError(err.error);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     }
-    else if (err.message === "Email already in use") {
-      setErrors({ ...errors, email: "This email is already registered" });
-    }
-    else if (typeof err === 'string' && err.includes("Email already in use")) {
-      setErrors({ ...errors, email: "This email is already registered" });
-    }
-    else if (err.error) {
-      setError(err.error);
-    } else if (err.message) {
-      setError(err.message);
-    } else {
-      setError("Something went wrong. Please try again.");
-    }
-  }
-};
+  };
+
   return (
     <div className="loginpage">
       <div className="login-card">

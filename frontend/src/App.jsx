@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/homepage/HomePage";
 import LoginPage from "./pages/loginpage/LoginPage";
 import Dashboard from "./pages/dashboard/DashboardPage";
-import ArticlesPage from "./pages/articles/ArticlesPage";
+
 import ArticleDetailPage from "./pages/articles/ArticleDetailPage/ArticleDetailPage";
 import PublicArticlesPage from "./pages/publicArticle/PublicArticlesPage";
 import ArticleDetailPublicView from "./pages/publicArticle/articleDetailPublic/articleDetailPublicView";
@@ -12,6 +12,7 @@ import AdminDashboardPage from "./pages/adminpage/AdminDashboardPage";
 import LogViewer from "./pages/adminpage/LogViewer/LogViewer";
 import ProtectedRoute from "./components/shared/header/protectedroutes/protectedRoute";
 import PublicOnlyRoute from "./components/shared/header/protectedroutes/PublicOnlyRoute";
+import ArticlesPage from "./pages/articles/ArticlesPage";
 
 function App() {
   return (

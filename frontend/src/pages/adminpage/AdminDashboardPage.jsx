@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/shared/header/Header';
 import './AdminDashboardPage.css';
-import { getAdminDashboardData, getAllAuthors } from './service/getAdminDashboardData';
+import { adminDashboardService,getAllAuthors } from '../../services/adminDashboardService';
+
 
 const AdminDashboardPage = () => {
   const navigate = useNavigate();
@@ -78,7 +79,7 @@ const AdminDashboardPage = () => {
   const fetchAdminDashboardData = async () => {
     setLoading(true);
     try {
-      const data = await getAdminDashboardData();
+      const data = await adminDashboardService();
       setDashboardData(data);
     } catch (err) {
       console.error('Error fetching admin dashboard:', err);

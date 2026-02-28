@@ -3,6 +3,39 @@ const fs = require('fs').promises;
 const path = require('path');
 const logger = require('../utils/logger');
 
+// ============================================================================
+// EXISTING LOG FUNCTIONS
+// ============================================================================
+
+
+
+
+
+
+// ============================================================================
+const systemHealth = () => {
+  const used = process.memoryUsage();
+  const uptimeMinutes = Math.round(process.uptime() / 60);
+  
+  const healthData = {
+    memory: {
+      rss: `${Math.round(used.rss / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(used.heapTotal / 1024 / 1024)}MB`,
+      heapUsed: `${Math.round(used.heapUsed / 1024 / 1024)}MB`,
+      external: `${Math.round(used.external / 1024 / 1024)}MB`
+    },
+    uptime: `${uptimeMinutes} minutes`
+  };
+  
+  // Also log to file when called
+  logger.info({
+    type: 'system_health',
+    ...healthData,
+    timestamp: new Date().toISOString()
+  });
+  
+  return healthData;
+};
 // Get logs with filtering and pagination
 exports.getLogs = async (req, res) => {
   try {
@@ -15,11 +48,12 @@ exports.getLogs = async (req, res) => {
       endDate,
       userId,
       search,
-      // Control what to show
-      showHttp = 'false',      // Hide HTTP by default
-      showOptions = 'false',   // Hide OPTIONS by default
-      showDatabase = 'false',  // Hide DB queries by default
-      actionOnly = 'true'      // Show only user actions by default
+      
+      // ✅ IMPROVED DEFAULTS - Show everything useful by default
+      showHttp = 'true',        // Show HTTP requests (find slow endpoints)
+      showOptions = 'false',    // Hide OPTIONS (always useless)
+      showDatabase = 'true',    // Show DB queries (find performance issues)
+      actionOnly = 'false'      // Show all logs, not just actions
     } = req.query;
 
     const logFile = path.join(__dirname, '../logs/combined.log');
@@ -41,13 +75,12 @@ exports.getLogs = async (req, res) => {
       .filter(log => !log.error)
       .reverse();
 
-    // 🔥 FILTER 1: Show only meaningful actions by default
+    // 🔥 FILTER 1: Show only meaningful actions if requested
     if (actionOnly === 'true') {
       logs = logs.filter(log => {
         const type = log.type || log.message?.type;
         const method = log.message?.method || log.method;
         
-        // Keep only meaningful user actions
         const meaningfulTypes = [
           'article_created',
           'article_updated', 
@@ -71,12 +104,12 @@ exports.getLogs = async (req, res) => {
         ];
         
         return meaningfulTypes.includes(type) || 
-               (type === 'error') || // Always show errors
-               (type && type.startsWith('admin_')); // Always show admin actions
+               (type === 'error') ||
+               (type && type.startsWith('admin_'));
       });
     }
 
-    // 🔥 FILTER 2: Hide HTTP requests unless specifically requested
+    // 🔥 FILTER 2: Show/hide HTTP requests based on user preference
     if (showHttp === 'false') {
       logs = logs.filter(log => {
         const type = log.type || log.message?.type;
@@ -84,7 +117,7 @@ exports.getLogs = async (req, res) => {
       });
     }
 
-    // 🔥 FILTER 3: Hide OPTIONS requests unless specifically requested
+    // 🔥 FILTER 3: Always hide OPTIONS unless explicitly requested
     if (showOptions === 'false') {
       logs = logs.filter(log => {
         const method = log.message?.method || log.method;
@@ -92,7 +125,7 @@ exports.getLogs = async (req, res) => {
       });
     }
 
-    // 🔥 FILTER 4: Hide database debug logs unless requested
+    // 🔥 FILTER 4: Show/hide database logs based on user preference
     if (showDatabase === 'false') {
       logs = logs.filter(log => {
         const type = log.type || log.message?.type;
@@ -100,13 +133,13 @@ exports.getLogs = async (req, res) => {
       });
     }
 
-    // 🔥 FILTER 5: Hide system health checks
+    // 🔥 FILTER 5: Hide system health checks (always noise for log viewer)
     logs = logs.filter(log => {
       const type = log.type || log.message?.type;
       return type !== 'system_health';
     });
 
-    // Apply existing filters
+    // Apply standard filters
     if (type !== 'all') {
       logs = logs.filter(log => log.message?.type === type || log.type === type);
     }
@@ -169,7 +202,7 @@ exports.getLogs = async (req, res) => {
   }
 };
 
-// Get log statistics - FIXED VERSION with clean counts
+// Get log statistics
 exports.getLogStats = async (req, res) => {
   try {
     const logFile = path.join(__dirname, '../logs/combined.log');
@@ -187,31 +220,26 @@ exports.getLogStats = async (req, res) => {
       })
       .filter(log => log);
 
-    // Create filtered logs that exclude noise
+    // For stats, we want to analyze ALL logs, but separate meaningful ones
     const meaningfulLogs = allLogs.filter(log => {
       const type = log.type || log.message?.type;
       const method = log.message?.method || log.method;
       
-      // Exclude noise
-      if (type === 'http_request') return false;
+      // Exclude only OPTIONS (useless) and system health (noise)
       if (method === 'OPTIONS') return false;
-      if (type === 'database_query') return false;
-      if (type === 'database_operation') return false;
       if (type === 'system_health') return false;
       
-      return true;
+      return true; // Keep everything else!
     });
 
     const now = new Date();
     const oneHourAgo = new Date(now - 60 * 60 * 1000);
     const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
 
-    // Calculate stats based on meaningful logs only
+    // Calculate stats
     const stats = {
-      // Total meaningful logs (not including noise)
+      // Total logs
       total: meaningfulLogs.length,
-      
-      // Also show raw total for comparison
       rawTotal: allLogs.length,
       
       byLevel: {
@@ -243,7 +271,7 @@ exports.getLogStats = async (req, res) => {
       totalLogins: 0,
       totalRegistrations: 0,
       
-      // Response time (still useful for performance)
+      // Performance metrics
       responseTimeAvg: 0,
       slowRequests: []
     };
@@ -254,7 +282,6 @@ exports.getLogStats = async (req, res) => {
     meaningfulLogs.forEach(log => {
       const type = log.message?.type || log.type;
       const userId = log.message?.userId || log.userId;
-      const articleId = log.message?.articleId || log.articleId;
       
       // Count by action type
       if (type) {
@@ -290,7 +317,7 @@ exports.getLogStats = async (req, res) => {
           break;
       }
 
-      // Calculate response time (still useful)
+      // Calculate response time
       const duration = log.message?.duration || log.duration;
       if (duration) {
         const ms = parseInt(duration);
@@ -321,13 +348,13 @@ exports.getLogStats = async (req, res) => {
 
     stats.slowRequests = stats.slowRequests.slice(0, 10);
 
-    // Add summary of activity
+    // Add summary
     stats.summary = {
-      meaningfulLogs: meaningfulLogs.length,
-      noiseRemoved: allLogs.length - meaningfulLogs.length,
-      noisePercentage: allLogs.length > 0 
-        ? Math.round(((allLogs.length - meaningfulLogs.length) / allLogs.length) * 100) 
-        : 0
+      totalLogs: meaningfulLogs.length,
+      httpRequests: allLogs.filter(l => l.type === 'http_request' || l.message?.type === 'http_request').length,
+      databaseQueries: allLogs.filter(l => l.type === 'database_query' || l.message?.type === 'database_query').length,
+      userActions: allLogs.filter(l => l.type === 'user_action' || l.message?.type === 'user_action').length,
+      errors: allLogs.filter(l => l.level === 'error').length
     };
 
     res.json(stats);
@@ -362,3 +389,155 @@ exports.clearLogs = async (req, res) => {
     res.status(500).json({ error: 'Failed to clear logs' });
   }
 };
+
+
+exports.getSystemHealth = async (req, res) => {
+  try {
+    const health = systemHealth(); // Now defined above!
+    
+    const response = {
+      success: true,
+      ...health,
+      timestamp: new Date().toISOString()
+    };
+
+    res.json(response);
+  } catch (error) {
+    logger.error({
+      type: 'health_check_error',
+      error: error.message
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get health data' 
+    });
+  }
+};
+
+/**
+ * 📊 Get Detailed System Health (Admin only)
+ */
+exports.getDetailedSystemHealth = async (req, res) => {
+  try {
+    const health = systemHealth();
+    
+    const os = require('os');
+    const cpus = os.cpus();
+    
+    const detailedHealth = {
+      success: true,
+      ...health,
+      system: {
+        hostname: os.hostname(),
+        platform: os.platform(),
+        arch: os.arch(),
+        release: os.release(),
+        uptime: `${Math.round(os.uptime() / 60 / 60)} hours`,
+        loadAverage: os.loadavg(),
+        cpus: {
+          count: cpus.length,
+          model: cpus[0]?.model,
+          speed: cpus[0]?.speed
+        },
+        memory: {
+          total: `${Math.round(os.totalmem() / 1024 / 1024)}MB`,
+          free: `${Math.round(os.freemem() / 1024 / 1024)}MB`,
+          used: `${Math.round((os.totalmem() - os.freemem()) / 1024 / 1024)}MB`,
+          usagePercent: Math.round(((os.totalmem() - os.freemem()) / os.totalmem()) * 100)
+        }
+      },
+      process: {
+        pid: process.pid,
+        version: process.version,
+        uptime: `${Math.round(process.uptime() / 60)} minutes`,
+        memoryUsage: process.memoryUsage()
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    logger.info({
+      type: 'admin_viewed_health',
+      adminId: req.user?.userId,
+      timestamp: new Date().toISOString()
+    });
+
+    res.json(detailedHealth);
+  } catch (error) {
+    logger.error({
+      type: 'detailed_health_error',
+      error: error.message,
+      adminId: req.user?.userId
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get detailed health data' 
+    });
+  }
+};
+
+/**
+ * 📈 Get Health Check History
+ */
+exports.getHealthHistory = async (req, res) => {
+  try {
+    const { hours = 24, limit = 100 } = req.query;
+    
+    const logFile = path.join(__dirname, '../logs/combined.log');
+    const data = await fs.readFile(logFile, 'utf8');
+    
+    const healthLogs = data
+      .split('\n')
+      .filter(line => line.trim())
+      .map(line => {
+        try {
+          return JSON.parse(line);
+        } catch (e) {
+          return null;
+        }
+      })
+      .filter(log => log && log.type === 'system_health')
+      .filter(log => {
+        const logTime = new Date(log.timestamp).getTime();
+        const cutoff = Date.now() - (parseInt(hours) * 60 * 60 * 1000);
+        return logTime > cutoff;
+      })
+      .reverse()
+      .slice(0, parseInt(limit));
+
+    res.json({
+      success: true,
+      count: healthLogs.length,
+      hours: parseInt(hours),
+      logs: healthLogs
+    });
+  } catch (error) {
+    logger.error({
+      type: 'health_history_error',
+      error: error.message,
+      adminId: req.user?.userId
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get health history' 
+    });
+  }
+};
+
+/**
+ * 🔧 Internal function for periodic health checks (used by setInterval)
+ */
+exports.runHealthCheck = () => {
+  try {
+    const health = systemHealth();
+    console.log('🏥 Health check completed at', new Date().toLocaleString());
+    return health;
+  } catch (error) {
+    console.error('❌ Health check failed:', error.message);
+    return null;
+  }
+};
+
+
+
+
+

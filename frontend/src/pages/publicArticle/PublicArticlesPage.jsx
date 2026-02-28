@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "./PublicArticlesPage.css";
-import { getPublishedArticles } from "./service/publicDataService";
-
+import { getPublishedArticles } from "../../services/publicDataService";
 // Simple utility functions
 const stripHtml = (html, maxLength = 120) => {
   if (!html) return "No content available";
@@ -63,12 +62,9 @@ const PublicArticlesPage = () => {
       setError("");
       
       const token = localStorage.getItem("token");
-      console.log("Fetching articles with token:", token ? "Token exists" : "No token");
-      
+    
       const data = await getPublishedArticles(token);
-      console.log("API Response:", data);
-      console.log("Total articles from API:", data.length);
-      
+   
       // Count published vs drafts
       const published = data.filter(article => article.published_status === 1);
       const drafts = data.filter(article => article.published_status === 0);
@@ -76,10 +72,9 @@ const PublicArticlesPage = () => {
       setTotalPublished(published.length);
       setTotalDrafts(drafts.length);
       
-      console.log(`Published: ${published.length}, Drafts: ${drafts.length}`);
-      
+   
       if (published.length === 0) {
-        console.log("No published articles found");
+       ;
         setArticles([]);
         setAllTags([]);
         setAllAuthors([]);
@@ -110,13 +105,11 @@ const PublicArticlesPage = () => {
         setAllTags(Array.from(tags).sort());
         setAllAuthors(Array.from(authors).sort());
         
-        console.log(`Processed ${processed.length} published articles`);
-        console.log("Tags from published:", Array.from(tags));
-        console.log("Authors from published:", Array.from(authors));
+      
       }
       
     } catch (err) {
-      console.error("Error fetching articles:", err);
+    
       setError("Failed to load articles. Please try again later.");
     } finally {
       setLoading(false);

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ArticleDetailPage.css";
-import { getArticleById } from "../services/articleService";
+
 import Header from "../../../components/shared/header/Header.jsx";
+import { getArticleById } from "../../../services/articleService.js";
 
 const ArticleDetailPage = () => {
   const { id } = useParams();
@@ -42,22 +43,21 @@ const ArticleDetailPage = () => {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="detail-page-wrapper">
-       
-        <div className="detail-page-layout">
-        
-          <main className="detail-page-content">
-            <div className="detail-loading-container">
-              <div className="spinner"></div>
-              <p>Loading article...</p>
-            </div>
-          </main>
-        </div>
+if (isLoading) {
+  return (
+    <div className="detail-page-wrapper">
+      <Header />  {/* <---- ADD THIS */}
+      <div className="detail-page-layout">
+        <main className="detail-page-content">
+          <div className="detail-loading-container">
+            <div className="spinner"></div>
+            <p>Loading article...</p>
+          </div>
+        </main>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   if (error || !article) {
     return (
@@ -111,7 +111,7 @@ const ArticleDetailPage = () => {
                 </div>
                 
                 <div className="detail-meta-item">
-                  <span className="detail-meta-label">Published</span>
+                  <span className="detail-meta-label">Written</span>
                   <span className="detail-meta-value">{formatDate(article.createdAt)}</span>
                 </div>
 

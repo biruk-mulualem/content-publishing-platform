@@ -17,6 +17,12 @@ router.post('/login',
   userController.login
 );
 
+// ADD THIS - Logout route (protected, no role required)
+router.post('/logout', 
+  authMiddleware(), // No role required, just authentication
+  userController.logout
+);
+
 // Protected routes
 router.get('/authors', 
   authMiddleware(), 

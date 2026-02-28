@@ -1,5 +1,9 @@
-/* LogViewer.css - All classes now prefixed with 'log-' to avoid conflicts */
+/* LogViewer.css - Fully Responsive with Mobile View */
+/* All classes prefixed with 'log-' to avoid conflicts */
 
+/* ============================================================================
+   BASE STYLES (Your existing styles - KEPT EXACTLY)
+   ============================================================================ */
 .log-viewer-wrapper {
   min-height: 100vh;
   background: #f5f7fa;
@@ -469,4 +473,837 @@
 .log-page-info {
   color: #4a5568;
   font-size: 14px;
+}
+
+/* Log Tabs */
+.log-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.log-tab {
+  padding: 10px 20px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.log-tab.active {
+  background: #007bff;
+  color: white;
+}
+
+.log-subtitle {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Health Tab Styles */
+.log-health-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.log-health-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.log-health-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.log-health-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.log-auto-refresh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+}
+
+.log-refresh-btn {
+  padding: 8px 16px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.log-refresh-btn:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.log-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.log-health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.log-health-card {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  border-left: 4px solid #007bff;
+}
+
+.log-health-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.log-health-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #666;
+}
+
+.log-health-icon {
+  font-size: 20px;
+}
+
+.log-health-value {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.log-health-message {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.log-health-details {
+  color: #666;
+  font-size: 14px;
+}
+
+.log-health-memory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.log-health-memory-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-health-label {
+  font-size: 12px;
+  color: #999;
+}
+
+.log-health-progress {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 16px 0 8px;
+}
+
+.log-health-progress-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.log-health-progress-label {
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+}
+
+.log-health-footer {
+  grid-column: 1 / -1;
+  text-align: right;
+  color: #999;
+  font-size: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #dee2e6;
+  margin-top: 16px;
+}
+
+.log-clear-all-btn {
+  padding: 8px 16px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+.log-clear-all-btn:hover {
+  background: #c82333;
+}
+
+/* Clear Logs Confirmation Modal Styles */
+.log-confirm-modal {
+  max-width: 450px !important;
+  text-align: center;
+}
+
+.log-confirm-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.log-confirm-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.log-confirm-message {
+  color: #666;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.log-confirm-warning {
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.log-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 20px 0 0;
+  border-top: 1px solid #eaeaea;
+}
+
+.log-btn-secondary {
+  padding: 10px 24px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #475569;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.log-btn-secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.log-btn-danger {
+  padding: 10px 24px;
+  background: #dc3545;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.log-btn-danger:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.log-btn-danger:disabled,
+.log-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.log-spinner-small {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   ADDED: MOBILE RESPONSIVE STYLES (Added without changing existing styles)
+   ============================================================================ */
+
+/* Large Tablets (1024px and below) */
+@media screen and (max-width: 1024px) {
+  .log-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .log-viewer-content {
+    padding: 20px;
+  }
+
+  .log-filters-section select,
+  .log-filters-section input {
+    min-width: 120px;
+  }
+}
+
+/* Medium Tablets (768px and below) */
+@media screen and (max-width: 768px) {
+  .log-viewer-layout {
+    flex-direction: column;
+  }
+
+  .log-viewer-content {
+    padding: 15px;
+  }
+
+  .log-header-section h1 {
+    font-size: 24px;
+  }
+
+  .log-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .log-stat-card {
+    padding: 15px;
+  }
+
+  .log-stat-card h3 {
+    font-size: 12px;
+  }
+
+  .log-stat-number {
+    font-size: 20px;
+  }
+
+  .log-filters-section {
+    flex-direction: column;
+    padding: 15px;
+  }
+
+  .log-filters-section select,
+  .log-filters-section input,
+  .log-apply-btn,
+  .log-clear-btn {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .log-table-container {
+    max-height: 400px;
+    font-size: 12px;
+  }
+
+  .log-table th,
+  .log-table td {
+    padding: 10px;
+    font-size: 11px;
+  }
+
+  .log-table th {
+    font-size: 10px;
+  }
+
+  .log-action-cell {
+    max-width: 150px;
+  }
+
+  .log-view-details-btn {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+
+  .log-pagination {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .log-pagination button {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .log-page-info {
+    order: -1;
+    font-size: 12px;
+  }
+
+  .log-slow-request-item {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .log-slow-request-info {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .log-slow-request-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .log-slow-method {
+    min-width: 40px;
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  .log-slow-url {
+    font-size: 11px;
+  }
+
+  .log-slow-time {
+    min-width: auto;
+    font-size: 10px;
+  }
+
+  .log-response-time-stats {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .log-stat-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .log-endpoint-item {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .log-endpoint-path {
+    font-size: 12px;
+  }
+
+  .log-endpoint-count {
+    font-size: 11px;
+  }
+
+  .log-health-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .log-health-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .log-health-controls {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .log-auto-refresh {
+    width: 100%;
+  }
+
+  .log-refresh-btn {
+    width: 100%;
+  }
+
+  .log-health-card {
+    padding: 15px;
+  }
+
+  .log-health-value {
+    font-size: 24px;
+  }
+
+  .log-health-memory-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .log-tabs {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .log-tab {
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .log-clear-all-btn {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .log-modal-content {
+    width: 95%;
+    padding: 20px;
+    max-height: 90vh;
+  }
+
+  .log-modal-header h3 {
+    font-size: 18px;
+  }
+
+  .log-metadata {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .log-details-pre {
+    padding: 12px;
+    font-size: 10px;
+  }
+
+  .log-confirm-modal {
+    width: 90% !important;
+    padding: 20px !important;
+  }
+
+  .log-confirm-title {
+    font-size: 18px;
+  }
+
+  .log-confirm-message {
+    font-size: 13px;
+  }
+
+  .log-modal-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .log-btn-secondary,
+  .log-btn-danger {
+    width: 100%;
+    padding: 12px 24px;
+  }
+}
+
+/* Small Mobile Phones (480px and below) */
+@media screen and (max-width: 480px) {
+  .log-viewer-content {
+    padding: 10px;
+  }
+
+  .log-header-section h1 {
+    font-size: 20px;
+  }
+
+  .log-header-section p {
+    font-size: 12px;
+  }
+
+  .log-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .log-stat-card {
+    padding: 12px;
+  }
+
+  .log-stat-number {
+    font-size: 18px;
+  }
+
+  .log-table-container {
+    max-height: 350px;
+  }
+
+  .log-table th,
+  .log-table td {
+    padding: 8px 5px;
+    font-size: 10px;
+  }
+
+  .log-table th {
+    font-size: 9px;
+  }
+
+  .log-action-cell {
+    max-width: 100px;
+  }
+
+  .log-level-badge {
+    padding: 2px 4px;
+    font-size: 8px;
+  }
+
+  .log-type-icon {
+    gap: 2px;
+    font-size: 10px;
+  }
+
+  .log-view-details-btn {
+    padding: 2px 4px;
+    font-size: 8px;
+  }
+
+  .log-endpoints-card,
+  .log-slow-requests-card {
+    padding: 12px;
+  }
+
+  .log-endpoints-card h3,
+  .log-slow-requests-card h3 {
+    font-size: 14px;
+  }
+
+  .log-slow-method {
+    min-width: 35px;
+    font-size: 8px;
+    padding: 2px 4px;
+  }
+
+  .log-slow-url {
+    font-size: 9px;
+  }
+
+  .log-slow-duration {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+
+  .log-slow-time {
+    font-size: 8px;
+  }
+
+  .log-stat-label {
+    font-size: 11px;
+  }
+
+  .log-stat-value {
+    font-size: 12px;
+  }
+
+  .log-health-header h2 {
+    font-size: 18px;
+  }
+
+  .log-auto-refresh {
+    font-size: 12px;
+  }
+
+  .log-refresh-btn {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .log-health-card-header h3 {
+    font-size: 14px;
+  }
+
+  .log-health-value {
+    font-size: 20px;
+  }
+
+  .log-health-label {
+    font-size: 10px;
+  }
+
+  .log-health-progress-label {
+    font-size: 10px;
+  }
+
+  .log-health-footer {
+    font-size: 10px;
+  }
+
+  .log-tab {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .log-clear-all-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .log-modal-content {
+    padding: 15px;
+  }
+
+  .log-modal-header h3 {
+    font-size: 16px;
+  }
+
+  .log-close-btn {
+    font-size: 20px;
+  }
+
+  .log-metadata-level {
+    font-size: 10px;
+  }
+
+  .log-metadata-time {
+    font-size: 10px;
+  }
+
+  .log-details-pre {
+    font-size: 8px;
+    padding: 8px;
+  }
+
+  .log-confirm-icon {
+    font-size: 36px;
+  }
+
+  .log-confirm-title {
+    font-size: 16px;
+  }
+
+  .log-confirm-message {
+    font-size: 12px;
+  }
+
+  .log-confirm-warning {
+    font-size: 11px;
+    padding: 8px;
+  }
+
+  .log-btn-secondary,
+  .log-btn-danger {
+    font-size: 13px;
+    padding: 10px 20px;
+  }
+}
+
+/* Extra Small Phones (360px and below) */
+@media screen and (max-width: 360px) {
+  .log-table th,
+  .log-table td {
+    padding: 5px 3px;
+    font-size: 9px;
+  }
+
+  .log-table th {
+    font-size: 8px;
+  }
+
+  .log-action-cell {
+    max-width: 70px;
+  }
+
+  .log-level-badge {
+    padding: 1px 2px;
+    font-size: 7px;
+  }
+
+  .log-type-icon {
+    font-size: 8px;
+  }
+
+  .log-view-details-btn {
+    padding: 1px 2px;
+    font-size: 7px;
+  }
+
+  .log-header-section h1 {
+    font-size: 18px;
+  }
+
+  .log-stat-number {
+    font-size: 16px;
+  }
+
+  .log-health-value {
+    font-size: 18px;
+  }
+
+  .log-health-header h2 {
+    font-size: 16px;
+  }
+}
+
+/* Landscape Mode for Mobile Phones */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .log-modal-content {
+    max-height: 85vh;
+  }
+
+  .log-table-container {
+    max-height: 300px;
+  }
+
+  .log-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .log-filters-section,
+  .log-pagination,
+  .log-clear-all-btn,
+  .log-refresh-btn,
+  .log-auto-refresh,
+  .log-view-details-btn {
+    display: none !important;
+  }
+
+  .log-table-container {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .log-table {
+    page-break-inside: auto;
+  }
+
+  .log-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .log-stat-card,
+  .log-filters-section,
+  .log-table-container,
+  .log-endpoints-card,
+  .log-slow-requests-card,
+  .log-health-container {
+    border: 2px solid #000;
+  }
 }
